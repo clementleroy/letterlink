@@ -20,4 +20,4 @@ export const DEFAULT_RENDER_SETTINGS: TextRenderSettings = {
   renderMode: 'fill',
 }
 
-export const DEFAULT_FONT_URL = '/Pacifico-Regular.ttf'
+export const DEFAULT_FONT_URL = `${import.meta.env.BASE_URL}Pacifico-Regular.ttf`
