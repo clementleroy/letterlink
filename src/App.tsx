@@ -1,6 +1,5 @@
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import type { Font } from 'opentype.js'
 import './App.css'
 import {
   DEFAULT_BOARD_SETTINGS,
@@ -8,7 +7,7 @@ import {
   DEFAULT_RENDER_SETTINGS,
 } from './lib/constants'
 import { triggerZipDownload } from './lib/export'
-import { loadDefaultFont } from './lib/font'
+import { loadGlyphs, type GlyphMap } from './lib/glyphs'
 import { parseCsvText, toInputItems, type ParsedCsv } from './lib/input'
 import { buildBoardPages } from './lib/layout'
 import { buildSvgDocument } from './lib/svg'
@@ -20,7 +19,7 @@ import type {
 } from './types'
 
 function App() {
-  const [font, setFont] = useState<Font | null>(null)
+  const [glyphMap, setGlyphMap] = useState<GlyphMap | null>(null)
   const [fontError, setFontError] = useState<string>('')
   const [sourceMode, setSourceMode] = useState<'text' | 'csv'>('text')
   const [rawText, setRawText] = useState(DEFAULT_INPUT_TEXT)
@@ -36,10 +35,10 @@ function App() {
   useEffect(() => {
     let cancelled = false
 
-    loadDefaultFont()
-      .then((loadedFont) => {
+    loadGlyphs()
+      .then((loaded) => {
         if (!cancelled) {
-          setFont(loadedFont)
+          setGlyphMap(loaded)
         }
       })
       .catch((error: Error) => {
@@ -62,12 +61,12 @@ function App() {
   }, [csvData, deferredRawText, selectedColumn, sourceMode])
 
   const pages = useMemo<BoardPage[]>(() => {
-    if (!font || fontError) {
+    if (!glyphMap || fontError) {
       return []
     }
 
-    return buildBoardPages(inputItems, font, renderSettings, boardSettings)
-  }, [boardSettings, font, fontError, inputItems, renderSettings])
+    return buildBoardPages(inputItems, glyphMap, renderSettings, boardSettings)
+  }, [boardSettings, glyphMap, fontError, inputItems, renderSettings])
 
   const safeCurrentPage = pages.length === 0 ? 0 : Math.min(currentPage, pages.length - 1)
   const currentBoard = pages[safeCurrentPage]
@@ -385,7 +384,7 @@ function App() {
           <div className="status-block">
             <p>
               <strong>Police:</strong>{' '}
-              {font ? 'Pacifico intégrée' : fontError || 'Chargement…'}
+              {glyphMap ? 'Pacifico (glyphs.svg)' : fontError || 'Chargement…'}
             </p>
             <p>
               <strong>Sortie:</strong> SVG multi-planches, dimensions physiques en

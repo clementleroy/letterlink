@@ -1,4 +1,4 @@
-import type { Font } from 'opentype.js'
+import type { GlyphMap } from './glyphs'
 import { renderWord } from './render'
 import type {
   BoardPage,
@@ -88,12 +88,12 @@ function placeOnNewShelf(
 
 export function buildBoardPages(
   items: InputItem[],
-  font: Font,
+  glyphMap: GlyphMap,
   renderSettings: TextRenderSettings,
   boardSettings: BoardSettings,
 ): BoardPage[] {
   const rendered = items
-    .map((item) => renderWord(item, font, renderSettings))
+    .map((item) => renderWord(item, glyphMap, renderSettings))
     .filter((item): item is RenderedWord => Boolean(item))
     .map((item) => ({
       ...item,

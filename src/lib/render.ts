@@ -1,6 +1,6 @@
 import paper from 'paper'
-import type { Font, Glyph } from 'opentype.js'
 import svgpath from 'svgpath'
+import type { GlyphMap } from './glyphs'
 import type { InputItem, RenderedWord, TextRenderSettings } from '../types'
 
 type GlyphShape = {
@@ -41,40 +41,49 @@ function pruneCache() {
 }
 
 function buildGlyphShapes(
-  font: Font,
+  glyphMap: GlyphMap,
   name: string,
   settings: TextRenderSettings,
 ): GlyphShape[] {
-  const glyphs = font.stringToGlyphs(name)
-  const scale = settings.fontSizeMm / font.unitsPerEm
-  const baseline = font.ascender * scale
+  const scale = settings.fontSizeMm / glyphMap.refSize
   let xCursor = 0
 
-  return glyphs.flatMap((glyph: Glyph, index: number) => {
-    const path = glyph.getPath(xCursor, baseline, settings.fontSizeMm)
-    const bbox = path.getBoundingBox()
-    const pathData = path.toPathData(3)
-    const nextAdvance = (glyph.advanceWidth ?? font.unitsPerEm * 0.5) * scale
-    const kerning = index < glyphs.length - 1
-      ? font.getKerningValue(glyph, glyphs[index + 1]) * scale
-      : 0
+  return [...name].flatMap((char) => {
+    const codePoint = char.codePointAt(0)
+    if (codePoint === undefined) return []
 
-    xCursor += nextAdvance + kerning + settings.letterSpacingMm - settings.overlapMm
+    const glyph = glyphMap.glyphs.get(codePoint)
+    if (!glyph) return []
 
-    if (!pathData || bbox.x1 === Number.POSITIVE_INFINITY) {
-      return []
-    }
+    const advance = glyph.advance * scale
+    xCursor += advance + settings.letterSpacingMm - settings.overlapMm
+
+    // Invisible glyph (e.g. space) — advance cursor but produce no shape
+    if (!glyph.pathData || glyph.x1 === glyph.x2) return []
+
+    const x1 = glyph.x1 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const y1 = glyph.y1 * scale
+    const x2 = glyph.x2 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const y2 = glyph.y2 * scale
+    const connectY = glyph.connectY * scale
+
+    const originX = xCursor - advance - settings.letterSpacingMm + settings.overlapMm
+    const pathData = svgpath(glyph.pathData)
+      .scale(scale)
+      .translate(originX, 0)
+      .round(3)
+      .toString()
 
     return [
       {
         pathData,
-        x1: bbox.x1,
-        y1: bbox.y1,
-        x2: bbox.x2,
-        y2: bbox.y2,
-        width: bbox.x2 - bbox.x1,
-        height: bbox.y2 - bbox.y1,
-        connectY: bbox.y1 + (bbox.y2 - bbox.y1) * 0.72,
+        x1,
+        y1,
+        x2,
+        y2,
+        width: x2 - x1,
+        height: y2 - y1,
+        connectY,
       },
     ]
   })
@@ -142,7 +151,7 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
 
 export function renderWord(
   item: InputItem,
-  font: Font,
+  glyphMap: GlyphMap,
   settings: TextRenderSettings,
 ): RenderedWord | null {
   const cacheKey = getCacheKey(item, settings)
@@ -158,7 +167,7 @@ export function renderWord(
     }
   }
 
-  const glyphShapes = buildGlyphShapes(font, item.name, settings)
+  const glyphShapes = buildGlyphShapes(glyphMap, item.name, settings)
 
   if (glyphShapes.length === 0) {
     return null
