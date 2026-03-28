@@ -15,8 +15,11 @@ import type {
   BoardPage,
   BoardSettings,
   InputItem,
+  LetterRenderOverride,
   TextRenderSettings,
 } from './types'
+
+type ControlsView = 'global' | 'letters'
 
 function App() {
   const [glyphMap, setGlyphMap] = useState<GlyphMap | null>(null)
@@ -29,6 +32,7 @@ function App() {
   const [renderSettings, setRenderSettings] = useState<TextRenderSettings>(DEFAULT_RENDER_SETTINGS)
   const [currentPage, setCurrentPage] = useState(0)
   const [statusMessage, setStatusMessage] = useState('')
+  const [controlsView, setControlsView] = useState<ControlsView>('global')
 
   const deferredRawText = useDeferredValue(rawText)
 
@@ -137,9 +141,82 @@ function App() {
   }
 
   const csvColumns = csvData?.headers ?? []
+  const configurableLetters = useMemo(() => {
+    const letters = new Set<string>()
+
+    inputItems.forEach((item) => {
+      for (const character of item.name) {
+        if (character.trim().length > 0) {
+          letters.add(character)
+        }
+      }
+    })
+
+    return [...letters].sort((left, right) => left.localeCompare(right, 'fr'))
+  }, [inputItems])
+  const letterContexts = useMemo(() => {
+    const contexts = new Map<string, string[]>()
+
+    inputItems.forEach((item) => {
+      const characters = [...item.name]
+
+      characters.forEach((character, index) => {
+        if (character.trim().length === 0) {
+          return
+        }
+
+        const previous = characters[index - 1] ?? '·'
+        const next = characters[index + 1] ?? '·'
+        const context = `${previous}${character}${next}`
+        const existing = contexts.get(character) ?? []
+
+        if (!existing.includes(context) && existing.length < 3) {
+          contexts.set(character, [...existing, context])
+        }
+      })
+    })
+
+    return contexts
+  }, [inputItems])
   const previewScale = currentBoard
     ? Math.min(1, 720 / Math.max(currentBoard.widthMm, currentBoard.heightMm))
     : 1
+
+  const updateLetterSetting = <Key extends keyof LetterRenderOverride>(
+    letter: string,
+    key: Key,
+    value: number,
+  ) => {
+    setRenderSettings((previous) => {
+      const current = previous.letterOverrides[letter]
+      const nextEntry: LetterRenderOverride = {
+        letterSpacingMm: current?.letterSpacingMm ?? previous.letterSpacingMm,
+        overlapMm: current?.overlapMm ?? previous.overlapMm,
+        bridgeThicknessMm: current?.bridgeThicknessMm ?? previous.bridgeThicknessMm,
+      }
+
+      nextEntry[key] = value
+
+      return {
+        ...previous,
+        letterOverrides: {
+          ...previous.letterOverrides,
+          [letter]: nextEntry,
+        },
+      }
+    })
+  }
+
+  const resetLetterSettings = (letter: string) => {
+    setRenderSettings((previous) => {
+      const nextOverrides = { ...previous.letterOverrides }
+      delete nextOverrides[letter]
+      return {
+        ...previous,
+        letterOverrides: nextOverrides,
+      }
+    })
+  }
 
   return (
     <main className="app-shell">
@@ -191,195 +268,306 @@ function App() {
             </div>
           </div>
 
-          <label className="field">
-            <span>Prénoms, un par ligne</span>
-            <textarea
-              rows={10}
-              value={rawText}
-              onChange={(event) => setRawText(event.target.value)}
-              placeholder="Élodie&#10;Maëlys&#10;Anaïs"
-            />
-          </label>
-
-          <label className="field">
-            <span>Importer un CSV</span>
-            <input accept=".csv,text/csv" onChange={onCsvUpload} type="file" />
-          </label>
-
-          {csvColumns.length > 0 ? (
-            <label className="field">
-              <span>Colonne à convertir</span>
-              <select
-                value={selectedColumn}
-                onChange={(event) => setSelectedColumn(event.target.value)}
-              >
-                {csvColumns.map((column) => (
-                  <option key={column.index} value={column.index}>
-                    {column.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          <div className="field-grid">
-            <label className="field">
-              <span>Largeur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.widthMm}
-                onChange={(event) =>
-                  updateBoardSetting('widthMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Hauteur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.heightMm}
-                onChange={(event) =>
-                  updateBoardSetting('heightMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Marge (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.marginMm}
-                onChange={(event) =>
-                  updateBoardSetting('marginMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Padding prénom (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.itemPaddingMm}
-                onChange={(event) =>
-                  updateBoardSetting('itemPaddingMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement horizontal (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.horizontalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('horizontalGapMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement vertical (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.verticalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('verticalGapMm', Number(event.target.value))
-                }
-              />
-            </label>
-          </div>
-
           <div className="section-head">
-            <h2>Rendu typographique</h2>
+            <h2>Configuration</h2>
+            <div className="segmented">
+              <button
+                className={controlsView === 'global' ? 'active' : ''}
+                onClick={() => setControlsView('global')}
+                type="button"
+              >
+                Globale
+              </button>
+              <button
+                className={controlsView === 'letters' ? 'active' : ''}
+                onClick={() => setControlsView('letters')}
+                type="button"
+              >
+                Par lettre
+              </button>
+            </div>
           </div>
 
-          <div className="field-grid">
-            <label className="field">
-              <span>Taille police (mm)</span>
-              <input
-                min="5"
-                step="0.5"
-                type="number"
-                value={renderSettings.fontSizeMm}
-                onChange={(event) =>
-                  updateRenderSetting('fontSizeMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement lettres (mm)</span>
-              <input
-                step="0.2"
-                type="number"
-                value={renderSettings.letterSpacingMm}
-                onChange={(event) =>
-                  updateRenderSetting('letterSpacingMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Chevauchement (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.overlapMm}
-                onChange={(event) =>
-                  updateRenderSetting('overlapMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Pont de liaison (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.bridgeThicknessMm}
-                onChange={(event) =>
-                  updateRenderSetting(
-                    'bridgeThicknessMm',
-                    Number(event.target.value),
-                  )
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Contour laser (mm)</span>
-              <input
-                min="0.05"
-                step="0.05"
-                type="number"
-                value={renderSettings.strokeWidthMm}
-                onChange={(event) =>
-                  updateRenderSetting('strokeWidthMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Mode</span>
-              <select
-                value={renderSettings.renderMode}
-                onChange={(event) =>
-                  updateRenderSetting(
-                    'renderMode',
-                    event.target.value as TextRenderSettings['renderMode'],
-                  )
-                }
-              >
-                <option value="fill">Contours remplis</option>
-                <option value="stroke">Trajets en trait</option>
-              </select>
-            </label>
-          </div>
+          {controlsView === 'global' ? (
+            <>
+              <label className="field">
+                <span>Prénoms, un par ligne</span>
+                <textarea
+                  rows={10}
+                  value={rawText}
+                  onChange={(event) => setRawText(event.target.value)}
+                  placeholder="Élodie&#10;Maëlys&#10;Anaïs"
+                />
+              </label>
+
+              <label className="field">
+                <span>Importer un CSV</span>
+                <input accept=".csv,text/csv" onChange={onCsvUpload} type="file" />
+              </label>
+
+              {csvColumns.length > 0 ? (
+                <label className="field">
+                  <span>Colonne à convertir</span>
+                  <select
+                    value={selectedColumn}
+                    onChange={(event) => setSelectedColumn(event.target.value)}
+                  >
+                    {csvColumns.map((column) => (
+                      <option key={column.index} value={column.index}>
+                        {column.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
+
+              <div className="field-grid">
+                <label className="field">
+                  <span>Largeur planche (mm)</span>
+                  <input
+                    min="50"
+                    step="1"
+                    type="number"
+                    value={boardSettings.widthMm}
+                    onChange={(event) =>
+                      updateBoardSetting('widthMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Hauteur planche (mm)</span>
+                  <input
+                    min="50"
+                    step="1"
+                    type="number"
+                    value={boardSettings.heightMm}
+                    onChange={(event) =>
+                      updateBoardSetting('heightMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Marge (mm)</span>
+                  <input
+                    min="0"
+                    step="0.5"
+                    type="number"
+                    value={boardSettings.marginMm}
+                    onChange={(event) =>
+                      updateBoardSetting('marginMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Padding prénom (mm)</span>
+                  <input
+                    min="0"
+                    step="0.5"
+                    type="number"
+                    value={boardSettings.itemPaddingMm}
+                    onChange={(event) =>
+                      updateBoardSetting('itemPaddingMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Espacement horizontal (mm)</span>
+                  <input
+                    min="0"
+                    step="0.5"
+                    type="number"
+                    value={boardSettings.horizontalGapMm}
+                    onChange={(event) =>
+                      updateBoardSetting('horizontalGapMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Espacement vertical (mm)</span>
+                  <input
+                    min="0"
+                    step="0.5"
+                    type="number"
+                    value={boardSettings.verticalGapMm}
+                    onChange={(event) =>
+                      updateBoardSetting('verticalGapMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+              </div>
+
+              <div className="section-head">
+                <h2>Rendu typographique</h2>
+              </div>
+
+              <div className="field-grid">
+                <label className="field">
+                  <span>Taille police (mm)</span>
+                  <input
+                    min="5"
+                    step="0.5"
+                    type="number"
+                    value={renderSettings.fontSizeMm}
+                    onChange={(event) =>
+                      updateRenderSetting('fontSizeMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Espacement lettres (mm)</span>
+                  <input
+                    step="0.2"
+                    type="number"
+                    value={renderSettings.letterSpacingMm}
+                    onChange={(event) =>
+                      updateRenderSetting('letterSpacingMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Chevauchement (mm)</span>
+                  <input
+                    min="0"
+                    step="0.2"
+                    type="number"
+                    value={renderSettings.overlapMm}
+                    onChange={(event) =>
+                      updateRenderSetting('overlapMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Pont de liaison (mm)</span>
+                  <input
+                    min="0"
+                    step="0.2"
+                    type="number"
+                    value={renderSettings.bridgeThicknessMm}
+                    onChange={(event) =>
+                      updateRenderSetting(
+                        'bridgeThicknessMm',
+                        Number(event.target.value),
+                      )
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Contour laser (mm)</span>
+                  <input
+                    min="0.05"
+                    step="0.05"
+                    type="number"
+                    value={renderSettings.strokeWidthMm}
+                    onChange={(event) =>
+                      updateRenderSetting('strokeWidthMm', Number(event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  <span>Mode</span>
+                  <select
+                    value={renderSettings.renderMode}
+                    onChange={(event) =>
+                      updateRenderSetting(
+                        'renderMode',
+                        event.target.value as TextRenderSettings['renderMode'],
+                      )
+                    }
+                  >
+                    <option value="fill">Contours remplis</option>
+                    <option value="stroke">Trajets en trait</option>
+                  </select>
+                </label>
+              </div>
+            </>
+          ) : (
+            <div className="letter-config">
+              <p className="muted-copy">
+                Ajuste chaque lettre individuellement. Les valeurs vides reprennent
+                les réglages globaux actuels.
+              </p>
+
+              {configurableLetters.length === 0 ? (
+                <div className="empty-state compact">
+                  <h3>Aucune lettre détectée</h3>
+                  <p>Ajoute des prénoms dans l’onglet « Globale ».</p>
+                </div>
+              ) : (
+                <div className="letter-table">
+                  <div className="letter-table-head">
+                    <span>Lettre</span>
+                    <span>Contexte</span>
+                    <span>Espacement</span>
+                    <span>Chevauchement</span>
+                    <span>Pont</span>
+                    <span>Action</span>
+                  </div>
+                  {configurableLetters.map((letter) => {
+                    const override = renderSettings.letterOverrides[letter]
+                    const contexts = letterContexts.get(letter) ?? [`·${letter}·`]
+                    return (
+                      <div className="letter-row" key={letter}>
+                        <strong>{letter}</strong>
+                        <div className="context-list">
+                          {contexts.map((context) => (
+                            <span className="context-chip" key={`${letter}-${context}`}>
+                              <span>{context[0]}</span>
+                              <strong>{context[1]}</strong>
+                              <span>{context[2]}</span>
+                            </span>
+                          ))}
+                        </div>
+                        <input
+                          aria-label={`Espacement pour ${letter}`}
+                          step="0.2"
+                          type="number"
+                          value={override?.letterSpacingMm ?? renderSettings.letterSpacingMm}
+                          onChange={(event) =>
+                            updateLetterSetting(
+                              letter,
+                              'letterSpacingMm',
+                              Number(event.target.value),
+                            )
+                          }
+                        />
+                        <input
+                          aria-label={`Chevauchement pour ${letter}`}
+                          min="0"
+                          step="0.2"
+                          type="number"
+                          value={override?.overlapMm ?? renderSettings.overlapMm}
+                          onChange={(event) =>
+                            updateLetterSetting(
+                              letter,
+                              'overlapMm',
+                              Number(event.target.value),
+                            )
+                          }
+                        />
+                        <input
+                          aria-label={`Pont pour ${letter}`}
+                          min="0"
+                          step="0.2"
+                          type="number"
+                          value={override?.bridgeThicknessMm ?? renderSettings.bridgeThicknessMm}
+                          onChange={(event) =>
+                            updateLetterSetting(
+                              letter,
+                              'bridgeThicknessMm',
+                              Number(event.target.value),
+                            )
+                          }
+                        />
+                        <button onClick={() => resetLetterSettings(letter)} type="button">
+                          Reset
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="status-block">
             <p>

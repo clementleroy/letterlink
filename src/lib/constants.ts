@@ -18,5 +18,5 @@ export const DEFAULT_RENDER_SETTINGS: TextRenderSettings = {
   bridgeThicknessMm: 1.4,
   strokeWidthMm: 0.2,
   renderMode: 'fill',
+  letterOverrides: {},
 }
-
