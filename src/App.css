@@ -168,6 +168,32 @@
   gap: 14px;
 }
 
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slider-row input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  height: 28px;
+  accent-color: #ba6c26;
+  cursor: pointer;
+}
+
+.slider-row input[type='number'] {
+  width: 68px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  text-align: right;
+}
+
 .status-block {
   padding: 16px 18px;
   border-radius: 20px;

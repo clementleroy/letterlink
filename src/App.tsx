@@ -225,75 +225,147 @@ function App() {
           <div className="field-grid">
             <label className="field">
               <span>Largeur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.widthMm}
-                onChange={(event) =>
-                  updateBoardSetting('widthMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="600"
+                  min="50"
+                  step="1"
+                  type="range"
+                  value={boardSettings.widthMm}
+                  onChange={(event) =>
+                    updateBoardSetting('widthMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="50"
+                  step="1"
+                  type="number"
+                  value={boardSettings.widthMm}
+                  onChange={(event) =>
+                    updateBoardSetting('widthMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Hauteur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.heightMm}
-                onChange={(event) =>
-                  updateBoardSetting('heightMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="600"
+                  min="50"
+                  step="1"
+                  type="range"
+                  value={boardSettings.heightMm}
+                  onChange={(event) =>
+                    updateBoardSetting('heightMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="50"
+                  step="1"
+                  type="number"
+                  value={boardSettings.heightMm}
+                  onChange={(event) =>
+                    updateBoardSetting('heightMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Marge (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.marginMm}
-                onChange={(event) =>
-                  updateBoardSetting('marginMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="40"
+                  min="0"
+                  step="0.5"
+                  type="range"
+                  value={boardSettings.marginMm}
+                  onChange={(event) =>
+                    updateBoardSetting('marginMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.5"
+                  type="number"
+                  value={boardSettings.marginMm}
+                  onChange={(event) =>
+                    updateBoardSetting('marginMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Padding prénom (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.itemPaddingMm}
-                onChange={(event) =>
-                  updateBoardSetting('itemPaddingMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="25"
+                  min="0"
+                  step="0.5"
+                  type="range"
+                  value={boardSettings.itemPaddingMm}
+                  onChange={(event) =>
+                    updateBoardSetting('itemPaddingMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.5"
+                  type="number"
+                  value={boardSettings.itemPaddingMm}
+                  onChange={(event) =>
+                    updateBoardSetting('itemPaddingMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Espacement horizontal (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.horizontalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('horizontalGapMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="40"
+                  min="0"
+                  step="0.5"
+                  type="range"
+                  value={boardSettings.horizontalGapMm}
+                  onChange={(event) =>
+                    updateBoardSetting('horizontalGapMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.5"
+                  type="number"
+                  value={boardSettings.horizontalGapMm}
+                  onChange={(event) =>
+                    updateBoardSetting('horizontalGapMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Espacement vertical (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.verticalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('verticalGapMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="40"
+                  min="0"
+                  step="0.5"
+                  type="range"
+                  value={boardSettings.verticalGapMm}
+                  onChange={(event) =>
+                    updateBoardSetting('verticalGapMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.5"
+                  type="number"
+                  value={boardSettings.verticalGapMm}
+                  onChange={(event) =>
+                    updateBoardSetting('verticalGapMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
           </div>
 
@@ -304,65 +376,128 @@ function App() {
           <div className="field-grid">
             <label className="field">
               <span>Taille police (mm)</span>
-              <input
-                min="5"
-                step="0.5"
-                type="number"
-                value={renderSettings.fontSizeMm}
-                onChange={(event) =>
-                  updateRenderSetting('fontSizeMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="80"
+                  min="5"
+                  step="0.5"
+                  type="range"
+                  value={renderSettings.fontSizeMm}
+                  onChange={(event) =>
+                    updateRenderSetting('fontSizeMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="5"
+                  step="0.5"
+                  type="number"
+                  value={renderSettings.fontSizeMm}
+                  onChange={(event) =>
+                    updateRenderSetting('fontSizeMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Espacement lettres (mm)</span>
-              <input
-                step="0.2"
-                type="number"
-                value={renderSettings.letterSpacingMm}
-                onChange={(event) =>
-                  updateRenderSetting('letterSpacingMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="5"
+                  min="-5"
+                  step="0.2"
+                  type="range"
+                  value={renderSettings.letterSpacingMm}
+                  onChange={(event) =>
+                    updateRenderSetting('letterSpacingMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  step="0.2"
+                  type="number"
+                  value={renderSettings.letterSpacingMm}
+                  onChange={(event) =>
+                    updateRenderSetting('letterSpacingMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Chevauchement (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.overlapMm}
-                onChange={(event) =>
-                  updateRenderSetting('overlapMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="10"
+                  min="0"
+                  step="0.2"
+                  type="range"
+                  value={renderSettings.overlapMm}
+                  onChange={(event) =>
+                    updateRenderSetting('overlapMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.2"
+                  type="number"
+                  value={renderSettings.overlapMm}
+                  onChange={(event) =>
+                    updateRenderSetting('overlapMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Pont de liaison (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.bridgeThicknessMm}
-                onChange={(event) =>
-                  updateRenderSetting(
-                    'bridgeThicknessMm',
-                    Number(event.target.value),
-                  )
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="5"
+                  min="0.2"
+                  step="0.2"
+                  type="range"
+                  value={renderSettings.bridgeThicknessMm}
+                  onChange={(event) =>
+                    updateRenderSetting(
+                      'bridgeThicknessMm',
+                      Number(event.target.value),
+                    )
+                  }
+                />
+                <input
+                  min="0"
+                  step="0.2"
+                  type="number"
+                  value={renderSettings.bridgeThicknessMm}
+                  onChange={(event) =>
+                    updateRenderSetting(
+                      'bridgeThicknessMm',
+                      Number(event.target.value),
+                    )
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Contour laser (mm)</span>
-              <input
-                min="0.05"
-                step="0.05"
-                type="number"
-                value={renderSettings.strokeWidthMm}
-                onChange={(event) =>
-                  updateRenderSetting('strokeWidthMm', Number(event.target.value))
-                }
-              />
+              <div className="slider-row">
+                <input
+                  max="1"
+                  min="0.05"
+                  step="0.05"
+                  type="range"
+                  value={renderSettings.strokeWidthMm}
+                  onChange={(event) =>
+                    updateRenderSetting('strokeWidthMm', Number(event.target.value))
+                  }
+                />
+                <input
+                  min="0.05"
+                  step="0.05"
+                  type="number"
+                  value={renderSettings.strokeWidthMm}
+                  onChange={(event) =>
+                    updateRenderSetting('strokeWidthMm', Number(event.target.value))
+                  }
+                />
+              </div>
             </label>
             <label className="field">
               <span>Mode</span>
