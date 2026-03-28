@@ -1,6 +1,6 @@
 import paper from 'paper'
-import type { Font, Glyph } from 'opentype.js'
 import svgpath from 'svgpath'
+import type { GlyphMap } from './glyphs'
 import type { InputItem, RenderedWord, TextRenderSettings } from '../types'
 
 type GlyphShape = {
@@ -41,40 +41,49 @@ function pruneCache() {
 }
 
 function buildGlyphShapes(
-  font: Font,
+  glyphMap: GlyphMap,
   name: string,
   settings: TextRenderSettings,
 ): GlyphShape[] {
-  const glyphs = font.stringToGlyphs(name)
-  const scale = settings.fontSizeMm / font.unitsPerEm
-  const baseline = font.ascender * scale
+  const scale = settings.fontSizeMm / glyphMap.refSize
   let xCursor = 0
 
-  return glyphs.flatMap((glyph: Glyph, index: number) => {
-    const path = glyph.getPath(xCursor, baseline, settings.fontSizeMm)
-    const bbox = path.getBoundingBox()
-    const pathData = path.toPathData(3)
-    const nextAdvance = (glyph.advanceWidth ?? font.unitsPerEm * 0.5) * scale
-    const kerning = index < glyphs.length - 1
-      ? font.getKerningValue(glyph, glyphs[index + 1]) * scale
-      : 0
+  return [...name].flatMap((char) => {
+    const codePoint = char.codePointAt(0)
+    if (codePoint === undefined) return []
 
-    xCursor += nextAdvance + kerning + settings.letterSpacingMm - settings.overlapMm
+    const glyph = glyphMap.glyphs.get(codePoint)
+    if (!glyph) return []
 
-    if (!pathData || bbox.x1 === Number.POSITIVE_INFINITY) {
-      return []
-    }
+    const advance = glyph.advance * scale
+    xCursor += advance + settings.letterSpacingMm - settings.overlapMm
+
+    // Invisible glyph (e.g. space) — advance cursor but produce no shape
+    if (!glyph.pathData || glyph.x1 === glyph.x2) return []
+
+    const x1 = glyph.x1 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const y1 = glyph.y1 * scale
+    const x2 = glyph.x2 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const y2 = glyph.y2 * scale
+    const connectY = glyph.connectY * scale
+
+    const originX = xCursor - advance - settings.letterSpacingMm + settings.overlapMm
+    const pathData = svgpath(glyph.pathData)
+      .scale(scale)
+      .translate(originX, 0)
+      .round(3)
+      .toString()
 
     return [
       {
         pathData,
-        x1: bbox.x1,
-        y1: bbox.y1,
-        x2: bbox.x2,
-        y2: bbox.y2,
-        width: bbox.x2 - bbox.x1,
-        height: bbox.y2 - bbox.y1,
-        connectY: bbox.y1 + (bbox.y2 - bbox.y1) * 0.72,
+        x1,
+        y1,
+        x2,
+        y2,
+        width: x2 - x1,
+        height: y2 - y1,
+        connectY,
       },
     ]
   })
@@ -103,113 +112,6 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
   return bridge
 }
 
-function addInternalBridges(
-  compoundPath: paper.CompoundPath,
-  bridgeThickness: number,
-): paper.PathItem {
-  const children = compoundPath.children as paper.Path[]
-  if (children.length <= 1) return compoundPath
-
-  // Group sub-paths by containment: a sub-path fully contained within another
-  // belongs to the same physical group (e.g. the hole inside an 'e')
-  const parent = Array.from({ length: children.length }, (_, i) => i)
-
-  const find = (i: number): number => {
-    if (parent[i] !== i) parent[i] = find(parent[i])
-    return parent[i]
-  }
-
-  for (let i = 0; i < children.length; i++) {
-    for (let j = i + 1; j < children.length; j++) {
-      if (
-        children[i].bounds.contains(children[j].bounds) ||
-        children[j].bounds.contains(children[i].bounds)
-      ) {
-        parent[find(j)] = find(i)
-      }
-    }
-  }
-
-  // Collect distinct groups
-  const groupMap = new Map<number, number[]>()
-  for (let i = 0; i < children.length; i++) {
-    const root = find(i)
-    if (!groupMap.has(root)) groupMap.set(root, [])
-    groupMap.get(root)!.push(i)
-  }
-
-  // Only one physical group — nothing to bridge
-  if (groupMap.size <= 1) return compoundPath
-
-  // The main group is the one with the largest combined bounding-box area
-  let mainRoot = -1
-  let maxArea = 0
-  for (const [root, indices] of groupMap) {
-    const area = indices.reduce((sum, i) => {
-      const b = children[i].bounds
-      return sum + b.width * b.height
-    }, 0)
-    if (area > maxArea) {
-      maxArea = area
-      mainRoot = root
-    }
-  }
-
-  const mainIndices = groupMap.get(mainRoot)!
-
-  // Within the main group, pick the outer contour (largest individual bbox)
-  const outerMainIdx = mainIndices.reduce((best, mi) => {
-    const b = children[mi].bounds
-    const bestB = children[best].bounds
-    return b.width * b.height > bestB.width * bestB.height ? mi : best
-  }, mainIndices[0])
-
-  const halfBridge = Math.max(bridgeThickness / 2, 0.3)
-  let result: paper.PathItem = compoundPath
-
-  for (const [root, indices] of groupMap) {
-    if (root === mainRoot) continue
-
-    for (const idx of indices) {
-      const isolated = children[idx]
-      const iBounds = isolated.bounds
-      const iCenter = iBounds.center
-      const mBounds = children[outerMainIdx].bounds
-
-      // X: prefer the horizontal overlap between accent and main body
-      const xLeft = Math.max(iBounds.left, mBounds.left)
-      const xRight = Math.min(iBounds.right, mBounds.right)
-      const bridgeX =
-        xRight > xLeft
-          ? (xLeft + xRight) / 2
-          : (iCenter.x + mBounds.center.x) / 2
-
-      // Y: connect the closer edges (accent is typically above the letter)
-      let yTop: number, yBottom: number
-      if (iCenter.y < mBounds.center.y) {
-        // isolated is above main (typical accent case)
-        yTop = iBounds.bottom - halfBridge
-        yBottom = mBounds.top + halfBridge
-      } else {
-        // isolated is below main
-        yTop = mBounds.bottom - halfBridge
-        yBottom = iBounds.top + halfBridge
-      }
-
-      if (yBottom <= yTop) continue
-
-      const bridge = new scope.Path.Rectangle({
-        from: new scope.Point(bridgeX - halfBridge, yTop),
-        to: new scope.Point(bridgeX + halfBridge, yBottom),
-        insert: false,
-      })
-      result = result.unite(bridge, { insert: false })
-    }
-  }
-
-  return result
-}
-
 function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string {
   let merged: paper.PathItem | null = null
 
@@ -217,9 +119,8 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
     scope.project.clear()
 
     shapes.forEach((shape, index) => {
-      const raw = new scope.CompoundPath(shape.pathData)
-      raw.closed = true
-      const next = addInternalBridges(raw, settings.bridgeThicknessMm)
+      const next = new scope.CompoundPath(shape.pathData)
+      next.closed = true
       merged = merged ? merged.unite(next, { insert: false }) : next
 
       const adjacent = shapes[index + 1]
@@ -250,7 +151,7 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
 
 export function renderWord(
   item: InputItem,
-  font: Font,
+  glyphMap: GlyphMap,
   settings: TextRenderSettings,
 ): RenderedWord | null {
   const cacheKey = getCacheKey(item, settings)
@@ -266,7 +167,7 @@ export function renderWord(
     }
   }
 
-  const glyphShapes = buildGlyphShapes(font, item.name, settings)
+  const glyphShapes = buildGlyphShapes(glyphMap, item.name, settings)
 
   if (glyphShapes.length === 0) {
     return null
