@@ -1,0 +1,3 @@
+display_name: Letterlink Release Check
+short_description: Run release checks and validate Cloudflare Pages readiness.
+default_prompt: Run the Letterlink release workflow, confirm deployment readiness, and provide a concise release checklist.

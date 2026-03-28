@@ -1,0 +1,3 @@
+display_name: Letterlink Feature Dev
+short_description: Implement and validate React/TypeScript feature changes in Letterlink.
+default_prompt: Use the Letterlink dev workflow to plan, implement, lint, build, and summarize a safe feature change.
