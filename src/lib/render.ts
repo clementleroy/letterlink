@@ -97,8 +97,12 @@ function buildGlyphShapes(
   })
 }
 
-function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphShape, thickness: number) {
-  const overscan = Math.max(thickness * 1.2, 1)
+function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphShape, thickness: number, fontSizeMm: number) {
+  // Overscan must reach the actual pen stroke inside each glyph.
+  // For capital letters (e.g. J) the bounding-box edge can be far from the
+  // stroke at connectY height, so we scale with fontSizeMm rather than
+  // using only thickness.
+  const overscan = Math.max(thickness * 2, fontSizeMm * 0.2)
   const lx = left.x2 - overscan
   const ly = left.connectY
   const rx = right.x1 + overscan
@@ -171,7 +175,7 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
 
       const adjacent = shapes[index + 1]
       if (adjacent && merged) {
-        const bridge = bridgeBetween(scope, shape, adjacent, settings.bridgeThicknessMm)
+        const bridge = bridgeBetween(scope, shape, adjacent, settings.bridgeThicknessMm, settings.fontSizeMm)
         if (bridge) {
           merged = merged.unite(bridge, { insert: false })
         }
