@@ -185,44 +185,28 @@
   gap: 12px;
 }
 
-.letter-table {
+.letter-card-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
 }
 
-.letter-table-head,
-.letter-row {
-  display: grid;
-  grid-template-columns: 56px repeat(3, minmax(0, 1fr)) auto;
-  gap: 10px;
-  align-items: center;
-}
-
-.letter-table-head {
-  font-size: 0.82rem;
-  color: var(--muted);
-  padding: 0 2px;
-}
-
-.letter-row {
-  padding: 10px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.65);
+.letter-card {
+  border-radius: 18px;
   border: 1px solid rgba(123, 89, 60, 0.12);
+  background: rgba(255, 255, 255, 0.65);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
 }
 
-.letter-row input {
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--heading);
-  padding: 9px 10px;
-  font: inherit;
+.letter-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.letter-row button {
+.letter-card-head button {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--heading);
@@ -230,6 +214,48 @@
   padding: 8px 12px;
   font: inherit;
   cursor: pointer;
+}
+
+.letter-preview {
+  border-radius: 14px;
+  border: 1px dashed rgba(123, 89, 60, 0.25);
+  background: rgba(250, 246, 240, 0.8);
+  min-height: 92px;
+  display: grid;
+  place-items: center;
+  color: #231a14;
+}
+
+.letter-preview svg {
+  max-width: 88%;
+  width: 100%;
+  height: 76px;
+}
+
+.letter-preview p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.letter-control {
+  display: grid;
+  gap: 6px;
+}
+
+.letter-control span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.letter-control input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.letter-control output {
+  font-size: 0.82rem;
+  color: var(--heading);
 }
 
 .empty-state.compact {

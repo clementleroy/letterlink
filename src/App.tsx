@@ -10,12 +10,14 @@ import { triggerZipDownload } from './lib/export'
 import { loadGlyphs, type GlyphMap } from './lib/glyphs'
 import { parseCsvText, toInputItems, type ParsedCsv } from './lib/input'
 import { buildBoardPages } from './lib/layout'
+import { renderWord } from './lib/render'
 import { buildSvgDocument } from './lib/svg'
 import type {
   BoardPage,
   BoardSettings,
   InputItem,
   LetterRenderOverride,
+  RenderedWord,
   TextRenderSettings,
 } from './types'
 
@@ -157,6 +159,26 @@ function App() {
   const previewScale = currentBoard
     ? Math.min(1, 720 / Math.max(currentBoard.widthMm, currentBoard.heightMm))
     : 1
+  const letterPreviews = useMemo(() => {
+    if (!glyphMap) {
+      return new Map<string, RenderedWord | null>()
+    }
+
+    return new Map(
+      configurableLetters.map((letter) => [
+        letter,
+        renderWord(
+          {
+            id: `preview-${letter}`,
+            name: letter,
+            sourceIndex: 0,
+          },
+          glyphMap,
+          renderSettings,
+        ),
+      ]),
+    )
+  }, [configurableLetters, glyphMap, renderSettings])
 
   const updateLetterSetting = <Key extends keyof LetterRenderOverride>(
     letter: string,
@@ -469,64 +491,99 @@ function App() {
                   <p>Ajoute des prénoms dans l’onglet « Globale ».</p>
                 </div>
               ) : (
-                <div className="letter-table">
-                  <div className="letter-table-head">
-                    <span>Lettre</span>
-                    <span>Espacement</span>
-                    <span>Chevauchement</span>
-                    <span>Pont</span>
-                    <span>Action</span>
-                  </div>
+                <div className="letter-card-grid">
                   {configurableLetters.map((letter) => {
                     const override = renderSettings.letterOverrides[letter]
+                    const letterPreview = letterPreviews.get(letter)
+                    const previewWidth = Math.max(28, letterPreview?.widthMm ?? 28)
+                    const previewHeight = Math.max(28, letterPreview?.heightMm ?? 28)
+
                     return (
-                      <div className="letter-row" key={letter}>
-                        <strong>{letter}</strong>
-                        <input
-                          aria-label={`Espacement pour ${letter}`}
-                          step="0.2"
-                          type="number"
-                          value={override?.letterSpacingMm ?? renderSettings.letterSpacingMm}
-                          onChange={(event) =>
-                            updateLetterSetting(
-                              letter,
-                              'letterSpacingMm',
-                              Number(event.target.value),
-                            )
-                          }
-                        />
-                        <input
-                          aria-label={`Chevauchement pour ${letter}`}
-                          min="0"
-                          step="0.2"
-                          type="number"
-                          value={override?.overlapMm ?? renderSettings.overlapMm}
-                          onChange={(event) =>
-                            updateLetterSetting(
-                              letter,
-                              'overlapMm',
-                              Number(event.target.value),
-                            )
-                          }
-                        />
-                        <input
-                          aria-label={`Pont pour ${letter}`}
-                          min="0"
-                          step="0.2"
-                          type="number"
-                          value={override?.bridgeThicknessMm ?? renderSettings.bridgeThicknessMm}
-                          onChange={(event) =>
-                            updateLetterSetting(
-                              letter,
-                              'bridgeThicknessMm',
-                              Number(event.target.value),
-                            )
-                          }
-                        />
-                        <button onClick={() => resetLetterSettings(letter)} type="button">
-                          Reset
-                        </button>
-                      </div>
+                      <article className="letter-card" key={letter}>
+                        <header className="letter-card-head">
+                          <strong>{letter}</strong>
+                          <button onClick={() => resetLetterSettings(letter)} type="button">
+                            Reset
+                          </button>
+                        </header>
+
+                        <div className="letter-preview">
+                          {letterPreview ? (
+                            <svg
+                              aria-label={`Aperçu de la lettre ${letter}`}
+                              viewBox={`0 0 ${previewWidth} ${previewHeight}`}
+                            >
+                              <path d={letterPreview.pathData} fill="currentColor" />
+                            </svg>
+                          ) : (
+                            <p>Aperçu indisponible</p>
+                          )}
+                        </div>
+
+                        <label className="letter-control">
+                          <span>Espacement</span>
+                          <input
+                            aria-label={`Espacement pour ${letter}`}
+                            max="4"
+                            min="-4"
+                            step="0.2"
+                            type="range"
+                            value={override?.letterSpacingMm ?? renderSettings.letterSpacingMm}
+                            onChange={(event) =>
+                              updateLetterSetting(
+                                letter,
+                                'letterSpacingMm',
+                                Number(event.target.value),
+                              )
+                            }
+                          />
+                          <output>
+                            {(override?.letterSpacingMm ?? renderSettings.letterSpacingMm).toFixed(1)} mm
+                          </output>
+                        </label>
+
+                        <label className="letter-control">
+                          <span>Chevauchement</span>
+                          <input
+                            aria-label={`Chevauchement pour ${letter}`}
+                            max="8"
+                            min="0"
+                            step="0.2"
+                            type="range"
+                            value={override?.overlapMm ?? renderSettings.overlapMm}
+                            onChange={(event) =>
+                              updateLetterSetting(
+                                letter,
+                                'overlapMm',
+                                Number(event.target.value),
+                              )
+                            }
+                          />
+                          <output>{(override?.overlapMm ?? renderSettings.overlapMm).toFixed(1)} mm</output>
+                        </label>
+
+                        <label className="letter-control">
+                          <span>Pont</span>
+                          <input
+                            aria-label={`Pont pour ${letter}`}
+                            max="6"
+                            min="0"
+                            step="0.2"
+                            type="range"
+                            value={override?.bridgeThicknessMm ?? renderSettings.bridgeThicknessMm}
+                            onChange={(event) =>
+                              updateLetterSetting(
+                                letter,
+                                'bridgeThicknessMm',
+                                Number(event.target.value),
+                              )
+                            }
+                          />
+                          <output>
+                            {(override?.bridgeThicknessMm ?? renderSettings.bridgeThicknessMm).toFixed(1)} mm
+                          </output>
+                        </label>
+                      </article>
                     )
                   })}
                 </div>
