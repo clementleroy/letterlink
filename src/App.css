@@ -1,0 +1,273 @@
+.app-shell {
+  min-height: 100vh;
+  padding: 32px;
+  display: grid;
+  gap: 24px;
+}
+
+.hero-panel,
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.hero-panel {
+  padding: 28px;
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1.4fr 0.8fr;
+  background:
+    radial-gradient(circle at top left, rgba(186, 108, 38, 0.18), transparent 38%),
+    linear-gradient(135deg, rgba(255, 250, 244, 0.95), rgba(250, 241, 229, 0.92)),
+    var(--panel);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.hero-copy {
+  max-width: 60ch;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hero-stats div,
+.summary-grid article {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(123, 89, 60, 0.12);
+}
+
+.hero-stats strong,
+.summary-grid strong {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--heading);
+}
+
+.hero-stats span,
+.summary-grid span {
+  font-size: 0.88rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.panel {
+  padding: 24px;
+}
+
+.controls-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-head h2,
+.preview-head h2 {
+  margin: 0;
+}
+
+.segmented,
+.page-tabs,
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.segmented button,
+.page-tabs button,
+.button-row button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--heading);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.segmented button.active,
+.page-tabs button.active,
+.button-row button:hover {
+  border-color: rgba(186, 108, 38, 0.35);
+  background: rgba(186, 108, 38, 0.12);
+}
+
+.segmented button:hover,
+.page-tabs button:hover {
+  transform: translateY(-1px);
+}
+
+.field,
+.status-block {
+  display: grid;
+  gap: 8px;
+}
+
+.field span {
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--heading);
+  padding: 12px 14px;
+  font: inherit;
+  resize: vertical;
+}
+
+.field textarea {
+  min-height: 220px;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: 2px solid rgba(186, 108, 38, 0.25);
+  border-color: rgba(186, 108, 38, 0.4);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.status-block {
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(231, 226, 217, 0.7), rgba(255, 255, 255, 0.7));
+}
+
+.status-block p {
+  margin: 0;
+}
+
+.preview-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.preview-head {
+  align-items: start;
+}
+
+.preview-head p {
+  margin: 8px 0 0;
+}
+
+.preview-stage {
+  min-height: 560px;
+  border-radius: 26px;
+  padding: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(246, 239, 229, 0.92)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(121, 103, 85, 0.06),
+      rgba(121, 103, 85, 0.06) 12px,
+      transparent 12px,
+      transparent 24px
+    );
+  border: 1px solid rgba(123, 89, 60, 0.12);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+}
+
+.board-frame {
+  max-width: 100%;
+}
+
+.board-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  color: #1f1812;
+}
+
+.board-background {
+  fill: #fffdf8;
+  stroke: rgba(77, 60, 43, 0.18);
+  stroke-width: 0.4;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px;
+}
+
+.empty-state h3 {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 1100px) {
+  .workspace,
+  .hero-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .panel,
+  .hero-panel {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .field-grid,
+  .summary-grid,
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-stage {
+    min-height: 420px;
+    padding: 14px;
+  }
+}
