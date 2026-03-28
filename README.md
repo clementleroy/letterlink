@@ -19,24 +19,53 @@ npm run build
 
 This repo includes:
 
- - `npm run deploy:cloudflare` for manual deploys
- - `.github/workflows/deploy-cloudflare.yml` for GitHub Actions deploys
+- `npm run deploy:cloudflare` for local/manual deploys (build + deploy)
+- `.github/workflows/deploy-cloudflare.yml` for GitHub Actions deploys
+
+### One-command local deploy
+
+1. Authenticate Wrangler once:
+
+   ```bash
+   npx wrangler login
+   ```
+
+2. Set your Cloudflare account id (required):
+
+   ```bash
+   export CLOUDFLARE_ACCOUNT_ID=<your-account-id>
+   ```
+
+3. Deploy:
+
+   ```bash
+   npm run deploy:cloudflare
+   ```
+
+By default the deploy target is the `letterlink` Pages project. To deploy to a different project:
+
+```bash
+CLOUDFLARE_PROJECT_NAME=my-pages-project npm run deploy:cloudflare
+```
+
+You can also pass a branch explicitly:
+
+```bash
+npm run deploy:cloudflare -- --branch main
+```
+
+### GitHub Actions deploy requirements
 
 To enable automatic deploys from GitHub, add these repository secrets:
 
- - `CLOUDFLARE_API_TOKEN`
- - `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
 
-If you use Cloudflare Pages' Git integration (instead of the GitHub Action), set these build settings in the Pages dashboard:
+Optional repository variable:
 
- - Build command: `npm run build`
- - Build output directory: `dist`
+- `CLOUDFLARE_PROJECT_NAME` (defaults to `letterlink`)
 
-The workflow assumes the Cloudflare Pages project is named `letterlink`. If you create it with a different name, update the workflow file before deploying.
+If you use Cloudflare Pages' Git integration instead of this workflow, set these build settings in the Pages dashboard:
 
-For a one-off local deploy:
-
-```bash
-npm run build
-npm run deploy:cloudflare -- --project-name letterlink
-```
+- Build command: `npm run build`
+- Build output directory: `dist`
