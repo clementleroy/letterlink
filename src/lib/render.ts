@@ -124,7 +124,7 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
 
   bridge.add(new scope.Segment(
     new scope.Point(lx + nx * halfFull, ly + ny * halfFull),
-    null,
+    undefined,
     new scope.Point(tx * tension, ty * tension),
   ))
   bridge.add(new scope.Segment(
@@ -135,11 +135,11 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
   bridge.add(new scope.Segment(
     new scope.Point(rx + nx * halfFull, ry + ny * halfFull),
     new scope.Point(-tx * tension, -ty * tension),
-    null,
+    undefined,
   ))
   bridge.add(new scope.Segment(
     new scope.Point(rx - nx * halfFull, ry - ny * halfFull),
-    null,
+    undefined,
     new scope.Point(-tx * tension, -ty * tension),
   ))
   bridge.add(new scope.Segment(
@@ -150,7 +150,7 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
   bridge.add(new scope.Segment(
     new scope.Point(lx - nx * halfFull, ly - ny * halfFull),
     new scope.Point(tx * tension, ty * tension),
-    null,
+    undefined,
   ))
 
   return bridge
