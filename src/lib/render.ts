@@ -103,6 +103,113 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
   return bridge
 }
 
+function addInternalBridges(
+  compoundPath: paper.CompoundPath,
+  bridgeThickness: number,
+): paper.PathItem {
+  const children = compoundPath.children as paper.Path[]
+  if (children.length <= 1) return compoundPath
+
+  // Group sub-paths by containment: a sub-path fully contained within another
+  // belongs to the same physical group (e.g. the hole inside an 'e')
+  const parent = Array.from({ length: children.length }, (_, i) => i)
+
+  const find = (i: number): number => {
+    if (parent[i] !== i) parent[i] = find(parent[i])
+    return parent[i]
+  }
+
+  for (let i = 0; i < children.length; i++) {
+    for (let j = i + 1; j < children.length; j++) {
+      if (
+        children[i].bounds.contains(children[j].bounds) ||
+        children[j].bounds.contains(children[i].bounds)
+      ) {
+        parent[find(j)] = find(i)
+      }
+    }
+  }
+
+  // Collect distinct groups
+  const groupMap = new Map<number, number[]>()
+  for (let i = 0; i < children.length; i++) {
+    const root = find(i)
+    if (!groupMap.has(root)) groupMap.set(root, [])
+    groupMap.get(root)!.push(i)
+  }
+
+  // Only one physical group — nothing to bridge
+  if (groupMap.size <= 1) return compoundPath
+
+  // The main group is the one with the largest combined bounding-box area
+  let mainRoot = -1
+  let maxArea = 0
+  for (const [root, indices] of groupMap) {
+    const area = indices.reduce((sum, i) => {
+      const b = children[i].bounds
+      return sum + b.width * b.height
+    }, 0)
+    if (area > maxArea) {
+      maxArea = area
+      mainRoot = root
+    }
+  }
+
+  const mainIndices = groupMap.get(mainRoot)!
+
+  // Within the main group, pick the outer contour (largest individual bbox)
+  const outerMainIdx = mainIndices.reduce((best, mi) => {
+    const b = children[mi].bounds
+    const bestB = children[best].bounds
+    return b.width * b.height > bestB.width * bestB.height ? mi : best
+  }, mainIndices[0])
+
+  const halfBridge = Math.max(bridgeThickness / 2, 0.3)
+  let result: paper.PathItem = compoundPath
+
+  for (const [root, indices] of groupMap) {
+    if (root === mainRoot) continue
+
+    for (const idx of indices) {
+      const isolated = children[idx]
+      const iBounds = isolated.bounds
+      const iCenter = iBounds.center
+      const mBounds = children[outerMainIdx].bounds
+
+      // X: prefer the horizontal overlap between accent and main body
+      const xLeft = Math.max(iBounds.left, mBounds.left)
+      const xRight = Math.min(iBounds.right, mBounds.right)
+      const bridgeX =
+        xRight > xLeft
+          ? (xLeft + xRight) / 2
+          : (iCenter.x + mBounds.center.x) / 2
+
+      // Y: connect the closer edges (accent is typically above the letter)
+      let yTop: number, yBottom: number
+      if (iCenter.y < mBounds.center.y) {
+        // isolated is above main (typical accent case)
+        yTop = iBounds.bottom - halfBridge
+        yBottom = mBounds.top + halfBridge
+      } else {
+        // isolated is below main
+        yTop = mBounds.bottom - halfBridge
+        yBottom = iBounds.top + halfBridge
+      }
+
+      if (yBottom <= yTop) continue
+
+      const bridge = new scope.Path.Rectangle({
+        from: new scope.Point(bridgeX - halfBridge, yTop),
+        to: new scope.Point(bridgeX + halfBridge, yBottom),
+        insert: false,
+      })
+      result = result.unite(bridge, { insert: false })
+    }
+  }
+
+  return result
+}
+
 function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string {
   let merged: paper.PathItem | null = null
 
@@ -110,8 +217,9 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
     scope.project.clear()
 
     shapes.forEach((shape, index) => {
-      const next = new scope.CompoundPath(shape.pathData)
-      next.closed = true
+      const raw = new scope.CompoundPath(shape.pathData)
+      raw.closed = true
+      const next = addInternalBridges(raw, settings.bridgeThicknessMm)
       merged = merged ? merged.unite(next, { insert: false }) : next
 
       const adjacent = shapes[index + 1]
