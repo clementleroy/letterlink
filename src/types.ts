@@ -11,6 +11,13 @@ export type TextRenderSettings = {
   bridgeThicknessMm: number
   strokeWidthMm: number
   renderMode: 'fill' | 'stroke'
+  letterOverrides: Record<string, LetterRenderOverride>
+}
+
+export type LetterRenderOverride = {
+  letterSpacingMm: number
+  overlapMm: number
+  bridgeThicknessMm: number
 }
 
 export type BoardSettings = {
