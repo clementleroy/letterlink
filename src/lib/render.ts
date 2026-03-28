@@ -71,7 +71,9 @@ function buildGlyphShapes(
     const y1 = glyph.y1 * scale
     const x2 = glyph.x2 * scale + (xCursor - advance - letterSpacing + settings.overlapMm)
     const y2 = glyph.y2 * scale
-    const connectY = glyph.connectY * scale
+    // Clamp connectY to the baseline so descender letters (g, j, p, q, y…)
+    // don't produce a bridge anchored deep in the descender zone.
+    const connectY = Math.min(glyph.connectY * scale, glyphMap.baseline * scale)
 
     const originX = xCursor - advance - letterSpacing + settings.overlapMm
     const pathData = svgpath(glyph.pathData)
