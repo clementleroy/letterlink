@@ -28,6 +28,13 @@ To enable automatic deploys from GitHub, add these repository secrets:
  - `CLOUDFLARE_API_TOKEN`
  - `CLOUDFLARE_ACCOUNT_ID`
 
+If you use Cloudflare Pages' Git integration (instead of the GitHub Action), set these build settings in the Pages dashboard:
+
+ - Build command: `npm run build`
+ - Build output directory: `dist`
+
+`wrangler.toml` for Pages only supports `pages_build_output_dir`; build commands are configured in the Pages UI.
+
 The workflow assumes the Cloudflare Pages project is named `letterlink`. If you create it with a different name, update the workflow file before deploying.
 
 For a one-off local deploy:
