@@ -91,23 +91,61 @@ function buildGlyphShapes(
 
 function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphShape, thickness: number) {
   const overscan = Math.max(thickness * 1.2, 1)
-  const leftAnchor = new scope.Point(left.x2 - overscan, left.connectY)
-  const rightAnchor = new scope.Point(right.x1 + overscan, right.connectY)
-  const vector = rightAnchor.subtract(leftAnchor)
-  const length = Math.max(vector.length, 0.001)
-  const normal = new scope.Point(-vector.y / length, vector.x / length)
-  const halfThickness = clamp(thickness * 0.95, 0.55)
+  const lx = left.x2 - overscan
+  const ly = left.connectY
+  const rx = right.x1 + overscan
+  const ry = right.connectY
 
-  const bridge = new scope.Path({
-    closed: true,
-    insert: false,
-  })
+  const dx = rx - lx
+  const dy = ry - ly
+  const len = Math.max(Math.sqrt(dx * dx + dy * dy), 0.001)
+  // Unit tangent (along bridge) and unit normal (perpendicular)
+  const tx = dx / len
+  const ty = dy / len
+  const nx = -ty
+  const ny = tx
 
-  bridge.add(leftAnchor.add(normal.multiply(halfThickness)))
-  bridge.add(rightAnchor.add(normal.multiply(halfThickness)))
-  bridge.add(rightAnchor.subtract(normal.multiply(halfThickness)))
-  bridge.add(leftAnchor.subtract(normal.multiply(halfThickness)))
-  bridge.smooth({ type: 'continuous' })
+  const halfFull = clamp(thickness * 0.95, 0.55)
+  const halfMid = halfFull * 0.62   // pinch at midpoint
+  const tension = len * 0.3         // bezier handle magnitude
+
+  const midX = (lx + rx) / 2
+  const midY = (ly + ry) / 2
+
+  // 6-point spindle: top-left → top-mid → top-right → bottom-right → bottom-mid → bottom-left
+  // Handles are aligned along the tangent axis so curves flow smoothly along the bridge direction.
+  const bridge = new scope.Path({ closed: true, insert: false })
+
+  bridge.add(new scope.Segment(
+    new scope.Point(lx + nx * halfFull, ly + ny * halfFull),
+    null,
+    new scope.Point(tx * tension, ty * tension),
+  ))
+  bridge.add(new scope.Segment(
+    new scope.Point(midX + nx * halfMid, midY + ny * halfMid),
+    new scope.Point(-tx * tension, -ty * tension),
+    new scope.Point(tx * tension, ty * tension),
+  ))
+  bridge.add(new scope.Segment(
+    new scope.Point(rx + nx * halfFull, ry + ny * halfFull),
+    new scope.Point(-tx * tension, -ty * tension),
+    null,
+  ))
+  bridge.add(new scope.Segment(
+    new scope.Point(rx - nx * halfFull, ry - ny * halfFull),
+    null,
+    new scope.Point(-tx * tension, -ty * tension),
+  ))
+  bridge.add(new scope.Segment(
+    new scope.Point(midX - nx * halfMid, midY - ny * halfMid),
+    new scope.Point(tx * tension, ty * tension),
+    new scope.Point(-tx * tension, -ty * tension),
+  ))
+  bridge.add(new scope.Segment(
+    new scope.Point(lx - nx * halfFull, ly - ny * halfFull),
+    new scope.Point(tx * tension, ty * tension),
+    null,
+  ))
 
   return bridge
 }
