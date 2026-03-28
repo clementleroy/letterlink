@@ -19,7 +19,6 @@ npm run build
 
 This repo includes:
 
- - `wrangler.toml` with `dist` as the Pages output directory
  - `npm run deploy:cloudflare` for manual deploys
  - `.github/workflows/deploy-cloudflare.yml` for GitHub Actions deploys
 
@@ -27,6 +26,11 @@ To enable automatic deploys from GitHub, add these repository secrets:
 
  - `CLOUDFLARE_API_TOKEN`
  - `CLOUDFLARE_ACCOUNT_ID`
+
+If you use Cloudflare Pages' Git integration (instead of the GitHub Action), set these build settings in the Pages dashboard:
+
+ - Build command: `npm run build`
+ - Build output directory: `dist`
 
 The workflow assumes the Cloudflare Pages project is named `letterlink`. If you create it with a different name, update the workflow file before deploying.
 
