@@ -12,6 +12,7 @@ type GlyphShape = {
   width: number
   height: number
   connectY: number
+  bridgeThicknessMm: number
 }
 
 const clamp = (value: number, minimum: number) => Math.max(value, minimum)
@@ -20,12 +21,20 @@ const scope = new paper.PaperScope()
 scope.setup(new scope.Size(2048, 2048))
 
 function getCacheKey(item: InputItem, settings: TextRenderSettings) {
+  const letterOverrideKey = Object.entries(settings.letterOverrides)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([letter, override]) => {
+      return `${letter}:${override.letterSpacingMm}:${override.overlapMm}:${override.bridgeThicknessMm}`
+    })
+    .join(',')
+
   return [
     item.name,
     settings.fontSizeMm,
     settings.letterSpacingMm,
     settings.overlapMm,
     settings.bridgeThicknessMm,
+    letterOverrideKey,
   ].join('|')
 }
 
@@ -55,19 +64,23 @@ function buildGlyphShapes(
     const glyph = glyphMap.glyphs.get(codePoint)
     if (!glyph) return []
 
+    const override = settings.letterOverrides[char]
+    const letterSpacingMm = override?.letterSpacingMm ?? settings.letterSpacingMm
+    const overlapMm = override?.overlapMm ?? settings.overlapMm
+    const bridgeThicknessMm = override?.bridgeThicknessMm ?? settings.bridgeThicknessMm
     const advance = glyph.advance * scale
-    xCursor += advance + settings.letterSpacingMm - settings.overlapMm
+    xCursor += advance + letterSpacingMm - overlapMm
 
     // Invisible glyph (e.g. space) — advance cursor but produce no shape
     if (!glyph.pathData || glyph.x1 === glyph.x2) return []
 
-    const x1 = glyph.x1 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const x1 = glyph.x1 * scale + (xCursor - advance - letterSpacingMm + overlapMm)
     const y1 = glyph.y1 * scale
-    const x2 = glyph.x2 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const x2 = glyph.x2 * scale + (xCursor - advance - letterSpacingMm + overlapMm)
     const y2 = glyph.y2 * scale
     const connectY = glyph.connectY * scale
 
-    const originX = xCursor - advance - settings.letterSpacingMm + settings.overlapMm
+    const originX = xCursor - advance - letterSpacingMm + overlapMm
     const pathData = svgpath(glyph.pathData)
       .scale(scale)
       .translate(originX, 0)
@@ -84,6 +97,7 @@ function buildGlyphShapes(
         width: x2 - x1,
         height: y2 - y1,
         connectY,
+        bridgeThicknessMm,
       },
     ]
   })
@@ -112,7 +126,7 @@ function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphSh
   return bridge
 }
 
-function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string {
+function uniteShapes(shapes: GlyphShape[]): string {
   let merged: paper.PathItem | null = null
 
   try {
@@ -125,7 +139,8 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
 
       const adjacent = shapes[index + 1]
       if (adjacent && merged) {
-        const bridge = bridgeBetween(scope, shape, adjacent, settings.bridgeThicknessMm)
+        const bridgeThicknessMm = (shape.bridgeThicknessMm + adjacent.bridgeThicknessMm) / 2
+        const bridge = bridgeBetween(scope, shape, adjacent, bridgeThicknessMm)
         if (bridge) {
           merged = merged.unite(bridge, { insert: false })
         }
@@ -173,7 +188,7 @@ export function renderWord(
     return null
   }
 
-  const unitedPath = uniteShapes(glyphShapes, settings)
+  const unitedPath = uniteShapes(glyphShapes)
 
   if (!unitedPath) {
     return null
