@@ -25,10 +25,11 @@ const runCommand = (command, args, extraEnv = {}) => {
 
 runCommand('npm', ['run', 'build'])
 
-const deployArgs = ['wrangler', 'pages', 'deploy', 'dist', '--project-name', projectName]
+const deployArgs = ['pages', 'deploy', 'dist', '--project-name', projectName, '--commit-dirty=true']
 
 if (!cliArgs.includes('--branch') && process.env.CLOUDFLARE_BRANCH) {
   deployArgs.push('--branch', process.env.CLOUDFLARE_BRANCH)
 }
 
-runCommand('npx', [...deployArgs, ...cliArgs])
+const wranglerBin = new URL('../node_modules/.bin/wrangler', import.meta.url).pathname
+runCommand(wranglerBin, [...deployArgs, ...cliArgs])
