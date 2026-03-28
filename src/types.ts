@@ -6,7 +6,6 @@ export type InputItem = {
 
 export type TextRenderSettings = {
   fontSizeMm: number
-  letterSpacingMm: number
   overlapMm: number
   bridgeThicknessMm: number
   strokeWidthMm: number

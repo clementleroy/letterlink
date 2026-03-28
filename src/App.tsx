@@ -224,7 +224,7 @@ function App() {
 
           <div className="field-grid">
             <label className="field">
-              <span>Largeur planche (mm)</span>
+              <span>Largeur (mm)</span>
               <div className="slider-row">
                 <input
                   max="600"
@@ -248,7 +248,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Hauteur planche (mm)</span>
+              <span>Hauteur (mm)</span>
               <div className="slider-row">
                 <input
                   max="600"
@@ -272,7 +272,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Marge (mm)</span>
+              <span>Marge de bord (mm)</span>
               <div className="slider-row">
                 <input
                   max="40"
@@ -296,7 +296,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Padding prénom (mm)</span>
+              <span>Espace autour du prénom (mm)</span>
               <div className="slider-row">
                 <input
                   max="25"
@@ -320,7 +320,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Espacement horizontal (mm)</span>
+              <span>Espace entre prénoms (mm)</span>
               <div className="slider-row">
                 <input
                   max="40"
@@ -344,7 +344,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Espacement vertical (mm)</span>
+              <span>Espace entre rangées (mm)</span>
               <div className="slider-row">
                 <input
                   max="40"
@@ -370,12 +370,12 @@ function App() {
           </div>
 
           <div className="section-head">
-            <h2>Rendu typographique</h2>
+            <h2>Lettres et liaisons</h2>
           </div>
 
           <div className="field-grid">
             <label className="field">
-              <span>Taille police (mm)</span>
+              <span>Hauteur des lettres (mm)</span>
               <div className="slider-row">
                 <input
                   max="80"
@@ -399,30 +399,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Espacement lettres (mm)</span>
-              <div className="slider-row">
-                <input
-                  max="5"
-                  min="-5"
-                  step="0.2"
-                  type="range"
-                  value={renderSettings.letterSpacingMm}
-                  onChange={(event) =>
-                    updateRenderSetting('letterSpacingMm', Number(event.target.value))
-                  }
-                />
-                <input
-                  step="0.2"
-                  type="number"
-                  value={renderSettings.letterSpacingMm}
-                  onChange={(event) =>
-                    updateRenderSetting('letterSpacingMm', Number(event.target.value))
-                  }
-                />
-              </div>
-            </label>
-            <label className="field">
-              <span>Chevauchement (mm)</span>
+              <span>Resserrement cursif (mm)</span>
               <div className="slider-row">
                 <input
                   max="10"
@@ -446,7 +423,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Pont de liaison (mm)</span>
+              <span>Épaisseur de liaison (mm)</span>
               <div className="slider-row">
                 <input
                   max="5"
@@ -476,31 +453,7 @@ function App() {
               </div>
             </label>
             <label className="field">
-              <span>Contour laser (mm)</span>
-              <div className="slider-row">
-                <input
-                  max="1"
-                  min="0.05"
-                  step="0.05"
-                  type="range"
-                  value={renderSettings.strokeWidthMm}
-                  onChange={(event) =>
-                    updateRenderSetting('strokeWidthMm', Number(event.target.value))
-                  }
-                />
-                <input
-                  min="0.05"
-                  step="0.05"
-                  type="number"
-                  value={renderSettings.strokeWidthMm}
-                  onChange={(event) =>
-                    updateRenderSetting('strokeWidthMm', Number(event.target.value))
-                  }
-                />
-              </div>
-            </label>
-            <label className="field">
-              <span>Mode</span>
+              <span>Rendu</span>
               <select
                 value={renderSettings.renderMode}
                 onChange={(event) =>
@@ -510,10 +463,36 @@ function App() {
                   )
                 }
               >
-                <option value="fill">Contours remplis</option>
-                <option value="stroke">Trajets en trait</option>
+                <option value="fill">Silhouette pleine</option>
+                <option value="stroke">Tracé de contour</option>
               </select>
             </label>
+            {renderSettings.renderMode === 'stroke' ? (
+              <label className="field">
+                <span>Épaisseur du tracé (mm)</span>
+                <div className="slider-row">
+                  <input
+                    max="1"
+                    min="0.05"
+                    step="0.05"
+                    type="range"
+                    value={renderSettings.strokeWidthMm}
+                    onChange={(event) =>
+                      updateRenderSetting('strokeWidthMm', Number(event.target.value))
+                    }
+                  />
+                  <input
+                    min="0.05"
+                    step="0.05"
+                    type="number"
+                    value={renderSettings.strokeWidthMm}
+                    onChange={(event) =>
+                      updateRenderSetting('strokeWidthMm', Number(event.target.value))
+                    }
+                  />
+                </div>
+              </label>
+            ) : null}
           </div>
 
           <div className="status-block">

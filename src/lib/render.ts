@@ -19,11 +19,16 @@ const renderCache = new Map<string, RenderedWord>()
 const scope = new paper.PaperScope()
 scope.setup(new scope.Size(2048, 2048))
 
+// Slight negative kerning derived from overlap so letters sit naturally close together.
+// Not exposed to the user — overlap alone controls the cursive tightness.
+function letterSpacingFromOverlap(overlapMm: number) {
+  return -(overlapMm * 0.14)
+}
+
 function getCacheKey(item: InputItem, settings: TextRenderSettings) {
   return [
     item.name,
     settings.fontSizeMm,
-    settings.letterSpacingMm,
     settings.overlapMm,
     settings.bridgeThicknessMm,
   ].join('|')
@@ -46,6 +51,7 @@ function buildGlyphShapes(
   settings: TextRenderSettings,
 ): GlyphShape[] {
   const scale = settings.fontSizeMm / glyphMap.refSize
+  const letterSpacing = letterSpacingFromOverlap(settings.overlapMm)
   let xCursor = 0
 
   return [...name].flatMap((char) => {
@@ -56,18 +62,18 @@ function buildGlyphShapes(
     if (!glyph) return []
 
     const advance = glyph.advance * scale
-    xCursor += advance + settings.letterSpacingMm - settings.overlapMm
+    xCursor += advance + letterSpacing - settings.overlapMm
 
     // Invisible glyph (e.g. space) — advance cursor but produce no shape
     if (!glyph.pathData || glyph.x1 === glyph.x2) return []
 
-    const x1 = glyph.x1 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const x1 = glyph.x1 * scale + (xCursor - advance - letterSpacing + settings.overlapMm)
     const y1 = glyph.y1 * scale
-    const x2 = glyph.x2 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
+    const x2 = glyph.x2 * scale + (xCursor - advance - letterSpacing + settings.overlapMm)
     const y2 = glyph.y2 * scale
     const connectY = glyph.connectY * scale
 
-    const originX = xCursor - advance - settings.letterSpacingMm + settings.overlapMm
+    const originX = xCursor - advance - letterSpacing + settings.overlapMm
     const pathData = svgpath(glyph.pathData)
       .scale(scale)
       .translate(originX, 0)

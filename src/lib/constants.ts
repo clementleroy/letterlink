@@ -13,7 +13,6 @@ export const DEFAULT_BOARD_SETTINGS: BoardSettings = {
 
 export const DEFAULT_RENDER_SETTINGS: TextRenderSettings = {
   fontSizeMm: 30,
-  letterSpacingMm: -0.5,
   overlapMm: 3.0,
   bridgeThicknessMm: 1.8,
   strokeWidthMm: 0.1,
