@@ -5,6 +5,12 @@
   gap: 24px;
 }
 
+.app-shell.compact-mode {
+  height: 100vh;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
 .hero-panel,
 .panel,
 .status-card {
@@ -114,6 +120,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.app-shell.compact-mode .workspace-switcher {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: rgba(255, 249, 242, 0.95);
+  backdrop-filter: blur(6px);
 }
 
 .workspace-switcher button,
@@ -235,6 +252,12 @@
   .app-shell {
     padding: 14px;
     gap: 14px;
+  }
+
+  .app-shell.compact-mode {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .hero-stats,

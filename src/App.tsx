@@ -43,6 +43,7 @@ function App() {
   const [workspaceStep, setWorkspaceStep] = useState<WorkspaceStep>(
     projectState.project ? 'configure' : 'prepare',
   )
+  const [compactMode, setCompactMode] = useState(false)
 
   const canConfigure = Boolean(projectState.glyphMap)
   const projectStats = {
@@ -135,20 +136,26 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
-      <AppHero
-        accents={projectStats.accents}
-        glyphs={projectStats.glyphs}
-        pages={projectStats.pages}
-      />
+    <main className={`app-shell ${compactMode ? 'compact-mode' : ''}`}>
+      {!compactMode ? (
+        <AppHero
+          accents={projectStats.accents}
+          glyphs={projectStats.glyphs}
+          pages={projectStats.pages}
+        />
+      ) : null}
 
       <WorkspaceSwitcher
         canConfigure={canConfigure}
+        compactMode={compactMode}
         onChange={setWorkspaceStep}
+        onToggleCompactMode={() => setCompactMode((current) => !current)}
         workspaceStep={workspaceStep}
       />
 
-      <ProjectStatusStrip project={projectState.project} readiness={projectState.readiness} />
+      {!compactMode ? (
+        <ProjectStatusStrip project={projectState.project} readiness={projectState.readiness} />
+      ) : null}
 
       {workspaceStep === 'prepare' ? (
         <PrepareWorkspace

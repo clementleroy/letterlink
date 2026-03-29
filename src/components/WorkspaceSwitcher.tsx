@@ -2,14 +2,18 @@ type WorkspaceStep = 'prepare' | 'configure'
 
 type WorkspaceSwitcherProps = {
   canConfigure: boolean
+  compactMode: boolean
   workspaceStep: WorkspaceStep
   onChange: (step: WorkspaceStep) => void
+  onToggleCompactMode: () => void
 }
 
 export function WorkspaceSwitcher({
   canConfigure,
+  compactMode,
   workspaceStep,
   onChange,
+  onToggleCompactMode,
 }: WorkspaceSwitcherProps) {
   return (
     <section className="workspace-switcher">
@@ -27,6 +31,13 @@ export function WorkspaceSwitcher({
         type="button"
       >
         2. Configurator
+      </button>
+      <button
+        className={compactMode ? 'is-active' : ''}
+        onClick={onToggleCompactMode}
+        type="button"
+      >
+        {compactMode ? 'Exit compact view' : 'Compact view'}
       </button>
     </section>
   )

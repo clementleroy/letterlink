@@ -5,10 +5,23 @@
   align-items: start;
 }
 
+.app-shell.compact-mode .prepare-layout {
+  min-height: 0;
+  height: 100%;
+}
+
 .sidebar-panel,
 .editor-panel {
   display: grid;
   gap: 20px;
+}
+
+.app-shell.compact-mode .sidebar-panel,
+.app-shell.compact-mode .editor-panel {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  align-content: start;
 }
 
 .editor-toolbar {

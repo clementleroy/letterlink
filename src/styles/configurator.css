@@ -5,11 +5,29 @@
   align-items: start;
 }
 
+.app-shell.compact-mode .workspace {
+  min-height: 0;
+  height: 100%;
+}
+
 .preview-stack,
 .controls-panel,
 .preview-panel {
   display: grid;
   gap: 20px;
+}
+
+.app-shell.compact-mode .preview-stack,
+.app-shell.compact-mode .controls-panel,
+.app-shell.compact-mode .preview-panel {
+  min-height: 0;
+  height: 100%;
+}
+
+.app-shell.compact-mode .controls-panel,
+.app-shell.compact-mode .preview-panel {
+  overflow: auto;
+  align-content: start;
 }
 
 .field-grid {
