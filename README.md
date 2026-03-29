@@ -40,6 +40,7 @@ These values are stored in the same reference millimeter space as
 
 This repo includes:
 
+- `wrangler.toml` configured with `pages_build_output_dir = "dist"`
 - `npm run deploy:cloudflare` for local/manual deploys (build + deploy)
 - `.github/workflows/deploy-cloudflare.yml` for GitHub Actions deploys
 
