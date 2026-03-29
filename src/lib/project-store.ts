@@ -93,8 +93,8 @@ export function getProjectReadiness(
 
   if (origin === 'font-upload') {
     return {
-      label: 'Font parsed, glyph setup in progress',
-      description: 'You can refine anchors and accents now, or move to the configurator right away.',
+      label: 'Font ready — anchors pre-set',
+      description: 'Default anchors have been placed from the font geometry. Refine them in the editor or go straight to the configurator.',
     }
   }
 
