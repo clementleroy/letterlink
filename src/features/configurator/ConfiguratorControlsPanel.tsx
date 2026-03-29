@@ -70,36 +70,39 @@ export function ConfiguratorControlsPanel({
         </div>
       </div>
 
-      <label className="field">
-        <span>Names, one per line</span>
-        <textarea
-          onChange={(event) => onSetRawText(event.target.value)}
-          placeholder="Elodie&#10;Maelys&#10;Anais"
-          rows={10}
-          value={rawText}
-        />
-      </label>
-
-      <label className="field">
-        <span>Upload CSV</span>
-        <input accept=".csv,text/csv" onChange={onCsvUpload} type="file" />
-      </label>
-
-      {csvColumns.length > 0 ? (
+      {sourceMode === 'text' ? (
         <label className="field">
-          <span>CSV column</span>
-          <select
-            onChange={(event) => onSetSelectedColumn(event.target.value)}
-            value={selectedColumn}
-          >
-            {csvColumns.map((column) => (
-              <option key={column.index} value={column.index}>
-                {column.label}
-              </option>
-            ))}
-          </select>
+          <span>Names, one per line</span>
+          <textarea
+            onChange={(event) => onSetRawText(event.target.value)}
+            placeholder={'Elodie\nMaelys\nAnais'}
+            rows={10}
+            value={rawText}
+          />
         </label>
-      ) : null}
+      ) : (
+        <>
+          <label className="field">
+            <span>Upload CSV</span>
+            <input accept=".csv,text/csv" onChange={onCsvUpload} type="file" />
+          </label>
+          {csvColumns.length > 0 ? (
+            <label className="field">
+              <span>CSV column</span>
+              <select
+                onChange={(event) => onSetSelectedColumn(event.target.value)}
+                value={selectedColumn}
+              >
+                {csvColumns.map((column) => (
+                  <option key={column.index} value={column.index}>
+                    {column.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </>
+      )}
 
       <div className="field-grid">
         <label className="field">
@@ -239,6 +242,21 @@ export function ConfiguratorControlsPanel({
         </label>
       </div>
 
+      <label className="toggle-field">
+        <input
+          checked={showDebugAnchors}
+          onChange={(event) => onSetShowDebugAnchors(event.target.checked)}
+          type="checkbox"
+        />
+        <span>Show anchor debug points</span>
+      </label>
+
+      {statusMessage ? (
+        <p className="status-message" key={statusMessage}>
+          {statusMessage}
+        </p>
+      ) : null}
+
       <div className="status-block">
         <p>
           <strong>Active project:</strong> {project?.source.fontFamily ?? 'Missing'}
@@ -246,15 +264,6 @@ export function ConfiguratorControlsPanel({
         <p>
           <strong>Project file:</strong> download it anytime to continue later.
         </p>
-        <label className="toggle-field">
-          <input
-            checked={showDebugAnchors}
-            onChange={(event) => onSetShowDebugAnchors(event.target.checked)}
-            type="checkbox"
-          />
-          <span>Show anchor debug points</span>
-        </label>
-        {statusMessage ? <p>{statusMessage}</p> : null}
         <div className="button-row">
           <button onClick={onDownloadProject} type="button">
             Download project

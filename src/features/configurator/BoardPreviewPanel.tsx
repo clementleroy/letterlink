@@ -106,8 +106,8 @@ export function BoardPreviewPanel({
           </div>
         ) : (
           <div className="empty-state">
-            <h3>Configurator ready</h3>
-            <p>Add names or upload a CSV to generate your first preview board.</p>
+            <h3>No boards yet</h3>
+            <p>Enter names in the controls panel, or upload a CSV to generate your first preview.</p>
           </div>
         )}
       </div>
@@ -123,7 +123,7 @@ export function BoardPreviewPanel({
         </article>
         <article>
           <span>Active page</span>
-          <strong>{currentBoard ? currentBoard.index + 1 : 0}</strong>
+          <strong>{currentBoard ? currentBoard.index + 1 : '—'}</strong>
         </article>
         <article>
           <span>Project</span>

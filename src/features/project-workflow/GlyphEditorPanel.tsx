@@ -131,18 +131,42 @@ export function GlyphEditorPanel({
         </button>
       </div>
 
-      <div className="button-row">
-        <button disabled={!canEditAccents} onClick={() => onNudgeSelectedAccent(-0.5, 0)} type="button">
-          Accent left
+      <div className="nudge-dpad">
+        <button
+          className="nudge-up"
+          disabled={!canEditAccents}
+          onClick={() => onNudgeSelectedAccent(0, -0.5)}
+          title="Nudge accent up (0.5 mm)"
+          type="button"
+        >
+          ↑
         </button>
-        <button disabled={!canEditAccents} onClick={() => onNudgeSelectedAccent(0.5, 0)} type="button">
-          Accent right
+        <button
+          className="nudge-left"
+          disabled={!canEditAccents}
+          onClick={() => onNudgeSelectedAccent(-0.5, 0)}
+          title="Nudge accent left (0.5 mm)"
+          type="button"
+        >
+          ←
         </button>
-        <button disabled={!canEditAccents} onClick={() => onNudgeSelectedAccent(0, -0.5)} type="button">
-          Accent up
+        <button
+          className="nudge-down"
+          disabled={!canEditAccents}
+          onClick={() => onNudgeSelectedAccent(0, 0.5)}
+          title="Nudge accent down (0.5 mm)"
+          type="button"
+        >
+          ↓
         </button>
-        <button disabled={!canEditAccents} onClick={() => onNudgeSelectedAccent(0, 0.5)} type="button">
-          Accent down
+        <button
+          className="nudge-right"
+          disabled={!canEditAccents}
+          onClick={() => onNudgeSelectedAccent(0.5, 0)}
+          title="Nudge accent right (0.5 mm)"
+          type="button"
+        >
+          →
         </button>
       </div>
 
@@ -152,9 +176,24 @@ export function GlyphEditorPanel({
             aria-label={`Editor for ${safeSelectedGlyphChar}`}
             className="glyph-editor-svg"
             onClick={onGlyphCanvasClick}
+            onKeyDown={(event) => {
+              if (!canEditAccents) return
+              const nudgeMap: Record<string, [number, number]> = {
+                ArrowLeft: [-0.5, 0],
+                ArrowRight: [0.5, 0],
+                ArrowUp: [0, -0.5],
+                ArrowDown: [0, 0.5],
+              }
+              const delta = nudgeMap[event.key]
+              if (delta) {
+                event.preventDefault()
+                onNudgeSelectedAccent(delta[0], delta[1])
+              }
+            }}
             onMouseLeave={onStopAccentDrag}
             onMouseMove={onGlyphCanvasMouseMove}
             onMouseUp={onStopAccentDrag}
+            tabIndex={0}
             viewBox={`0 0 ${glyphEditorLayout.width} ${glyphEditorLayout.height}`}
           >
             <rect
@@ -219,28 +258,41 @@ export function GlyphEditorPanel({
           <span>Entry anchor</span>
           <strong>
             {selectedGlyph?.leftConnectXRefMm ?? 'auto'} /{' '}
-            {selectedGlyph?.leftConnectYRefMm ?? 'auto'}
+            {selectedGlyph?.leftConnectYRefMm ?? 'auto'} mm
           </strong>
         </article>
         <article className="layer-card">
           <span>Exit anchor</span>
           <strong>
             {selectedGlyph?.rightConnectXRefMm ?? 'auto'} /{' '}
-            {selectedGlyph?.rightConnectYRefMm ?? 'auto'}
+            {selectedGlyph?.rightConnectYRefMm ?? 'auto'} mm
           </strong>
         </article>
         <article className="layer-card">
           <span>Accent offset</span>
           <strong>
             {selectedAccent
-              ? `${selectedAccent.xOffsetRefMm} / ${selectedAccent.yOffsetRefMm}`
+              ? `${selectedAccent.xOffsetRefMm} / ${selectedAccent.yOffsetRefMm} mm`
               : 'n/a'}
           </strong>
         </article>
         {glyphEditorLayers.map((layer) => (
           <article
             key={layer.id}
-            className={`layer-card ${safeSelectedAccentId === layer.id ? 'is-selected' : ''}`}
+            className={`layer-card ${safeSelectedAccentId === layer.id ? 'is-selected' : ''} ${layer.kind === 'accent' ? 'layer-card-clickable' : ''}`}
+            onClick={layer.kind === 'accent' ? () => onSetSelectedAccentId(layer.id) : undefined}
+            onKeyDown={
+              layer.kind === 'accent'
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onSetSelectedAccentId(layer.id)
+                    }
+                  }
+                : undefined
+            }
+            role={layer.kind === 'accent' ? 'button' : undefined}
+            tabIndex={layer.kind === 'accent' ? 0 : undefined}
           >
             <span>{layer.kind === 'accent' ? layer.label : 'Base letter'}</span>
             <strong>{layer.kind === 'accent' ? 'Accent part' : 'Main shape'}</strong>

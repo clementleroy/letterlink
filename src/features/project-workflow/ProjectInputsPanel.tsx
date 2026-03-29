@@ -61,6 +61,17 @@ export function ProjectInputsPanel({
         </button>
       </div>
 
+      {projectMessage ? (
+        <div className="message-block is-info" key={projectMessage}>
+          {projectMessage}
+        </div>
+      ) : null}
+      {projectError ? (
+        <div className="message-block is-error" key={projectError}>
+          {projectError}
+        </div>
+      ) : null}
+
       <div className="status-block">
         <p>
           <strong>Supported v1 import:</strong> font upload or saved project file.
@@ -68,8 +79,6 @@ export function ProjectInputsPanel({
         <p>
           <strong>Source font:</strong> {project?.source.fontFamily ?? 'Awaiting upload'}
         </p>
-        {projectMessage ? <p>{projectMessage}</p> : null}
-        {projectError ? <p className="error-copy">{projectError}</p> : null}
       </div>
     </aside>
   )

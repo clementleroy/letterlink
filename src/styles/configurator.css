@@ -73,6 +73,17 @@
   }
 }
 
+.status-message {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.91rem;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--heading);
+  margin: 0;
+  animation: fadeSlideIn 220ms ease;
+}
+
 @media (max-width: 720px) {
   .field-grid {
     grid-template-columns: 1fr;
@@ -82,5 +93,10 @@
     min-height: 340px;
     padding: 14px;
     border-radius: 20px;
+  }
+
+  .page-tabs {
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
   }
 }
