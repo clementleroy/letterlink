@@ -3,7 +3,7 @@ import type { LetterlinkProject, ProjectFileEnvelope } from '../types'
 
 const ACTIVE_PROJECT_STORAGE_KEY = 'letterlink-active-project-v2'
 
-export type ProjectOrigin = 'font-upload' | 'project-file' | 'autosave' | null
+export type ProjectOrigin = 'font-upload' | 'project-file' | 'autosave' | 'default' | null
 
 export type StoredProjectState = {
   project: LetterlinkProject | null
@@ -95,6 +95,13 @@ export function getProjectReadiness(
     return {
       label: 'Font ready — anchors pre-set',
       description: 'Default anchors have been placed from the font geometry. Refine them in the editor or go straight to the configurator.',
+    }
+  }
+
+  if (origin === 'default') {
+    return {
+      label: 'Pacifico demo loaded',
+      description: 'The built-in Pacifico font is ready to use. Upload your own font or project to start fresh.',
     }
   }
 

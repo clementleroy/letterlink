@@ -8,6 +8,7 @@ import {
   saveStoredProject,
   type ProjectOrigin,
 } from '../lib/project-store'
+import { parseProjectFileText } from '../lib/export'
 import type { LetterlinkGlyph, LetterlinkProject } from '../types'
 
 export type UseLetterlinkProjectResult = {
@@ -43,6 +44,30 @@ export function useLetterlinkProject(
 
     saveStoredProject(project)
   }, [project])
+
+  useEffect(() => {
+    if (project !== null) {
+      return
+    }
+
+    let cancelled = false
+
+    fetch('/default-project.json')
+      .then((res) => res.text())
+      .then((text) => {
+        if (cancelled) return
+        const defaultProject = parseProjectFileText(text)
+        setProject(defaultProject)
+        setProjectOrigin('default')
+      })
+      .catch(() => {
+        // Default project unavailable — user must upload a font or project.
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const glyphMap = useMemo<GlyphMap | null>(() => {
     if (!project) {

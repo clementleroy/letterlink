@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:codex": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
+    "generate:default-project": "node ./scripts/generate-default-project.mjs",
     "deploy:cloudflare": "node ./scripts/deploy-cloudflare.mjs"
   },
   "dependencies": {
