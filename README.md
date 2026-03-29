@@ -9,6 +9,25 @@ npm install
 npm run dev
 ```
 
+### Screenshot-friendly dev server (Codex/browser tooling)
+
+Some remote browser tools need a fixed host/port to capture UI screenshots.
+Use these scripts when running in Codex or similar environments:
+
+```bash
+npm run dev:codex
+```
+
+This binds Vite to `0.0.0.0:4173` with `--strictPort`, so screenshot tooling can
+reliably connect.
+
+To preview a production build with the same network settings:
+
+```bash
+npm run build
+npm run preview:codex
+```
+
 ## Production build
 
 ```bash
