@@ -15,6 +15,27 @@ npm run dev
 npm run build
 ```
 
+## Per-letter glyph configuration
+
+Persistent per-letter adjustments live in
+[`src/lib/glyph-config.ts`](./src/lib/glyph-config.ts).
+
+You can define overrides per character for:
+
+- `xOffsetRefMm`
+- `yOffsetRefMm`
+- `advanceAdjustRefMm`
+- `connectYAdjustRefMm`
+- `leftConnectXRefMm`
+- `leftConnectYRefMm`
+- `rightConnectXRefMm`
+- `rightConnectYRefMm`
+- `scaleX`
+- `scaleY`
+
+These values are stored in the same reference millimeter space as
+`public/glyphs.svg`, then scaled automatically at render time.
+
 ## Cloudflare Pages deploy
 
 This repo includes:

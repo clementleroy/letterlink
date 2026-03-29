@@ -1,9 +1,10 @@
 import paper from 'paper'
 import svgpath from 'svgpath'
 import type { GlyphMap } from './glyphs'
-import type { InputItem, RenderedWord, TextRenderSettings } from '../types'
+import type { GlyphDebugAnchor, InputItem, RenderedWord, TextRenderSettings } from '../types'
 
 type GlyphShape = {
+  char: string
   pathData: string
   x1: number
   y1: number
@@ -11,7 +12,10 @@ type GlyphShape = {
   y2: number
   width: number
   height: number
-  connectY: number
+  leftConnectX: number
+  leftConnectY: number
+  rightConnectX: number
+  rightConnectY: number
 }
 
 const clamp = (value: number, minimum: number) => Math.max(value, minimum)
@@ -19,8 +23,9 @@ const renderCache = new Map<string, RenderedWord>()
 const scope = new paper.PaperScope()
 scope.setup(new scope.Size(2048, 2048))
 
-function getCacheKey(item: InputItem, settings: TextRenderSettings) {
+function getCacheKey(item: InputItem, settings: TextRenderSettings, glyphVersion: string) {
   return [
+    glyphVersion,
     item.name,
     settings.fontSizeMm,
     settings.letterSpacingMm,
@@ -55,27 +60,47 @@ function buildGlyphShapes(
     const glyph = glyphMap.glyphs.get(codePoint)
     if (!glyph) return []
 
-    const advance = glyph.advance * scale
+    const advance = (glyph.advance + glyph.advanceAdjustRefMm) * scale
     xCursor += advance + settings.letterSpacingMm - settings.overlapMm
 
     // Invisible glyph (e.g. space) — advance cursor but produce no shape
     if (!glyph.pathData || glyph.x1 === glyph.x2) return []
 
-    const x1 = glyph.x1 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
-    const y1 = glyph.y1 * scale
-    const x2 = glyph.x2 * scale + (xCursor - advance - settings.letterSpacingMm + settings.overlapMm)
-    const y2 = glyph.y2 * scale
-    const connectY = glyph.connectY * scale
-
     const originX = xCursor - advance - settings.letterSpacingMm + settings.overlapMm
+    const glyphOffsetX = glyph.xOffsetRefMm * scale
+    const glyphOffsetY = glyph.yOffsetRefMm * scale
+    const x1 = glyph.x1 * glyph.scaleX * scale + originX + glyphOffsetX
+    const y1 = glyph.y1 * glyph.scaleY * scale + glyphOffsetY
+    const x2 = glyph.x2 * glyph.scaleX * scale + originX + glyphOffsetX
+    const y2 = glyph.y2 * glyph.scaleY * scale + glyphOffsetY
+    const autoConnectY =
+      (glyph.connectY * glyph.scaleY + glyph.connectYAdjustRefMm) * scale + glyphOffsetY
+    const leftConnectX =
+      glyph.leftConnectXRefMm === null
+        ? x1
+        : glyph.leftConnectXRefMm * glyph.scaleX * scale + originX + glyphOffsetX
+    const leftConnectY =
+      glyph.leftConnectYRefMm === null
+        ? autoConnectY
+        : glyph.leftConnectYRefMm * glyph.scaleY * scale + glyphOffsetY
+    const rightConnectX =
+      glyph.rightConnectXRefMm === null
+        ? x2
+        : glyph.rightConnectXRefMm * glyph.scaleX * scale + originX + glyphOffsetX
+    const rightConnectY =
+      glyph.rightConnectYRefMm === null
+        ? autoConnectY
+        : glyph.rightConnectYRefMm * glyph.scaleY * scale + glyphOffsetY
+
     const pathData = svgpath(glyph.pathData)
-      .scale(scale)
-      .translate(originX, 0)
+      .scale(scale * glyph.scaleX, scale * glyph.scaleY)
+      .translate(originX + glyphOffsetX, glyphOffsetY)
       .round(3)
       .toString()
 
     return [
       {
+        char,
         pathData,
         x1,
         y1,
@@ -83,16 +108,18 @@ function buildGlyphShapes(
         y2,
         width: x2 - x1,
         height: y2 - y1,
-        connectY,
+        leftConnectX,
+        leftConnectY,
+        rightConnectX,
+        rightConnectY,
       },
     ]
   })
 }
 
 function bridgeBetween(scope: paper.PaperScope, left: GlyphShape, right: GlyphShape, thickness: number) {
-  const overscan = Math.max(thickness * 1.2, 1)
-  const leftAnchor = new scope.Point(left.x2 - overscan, left.connectY)
-  const rightAnchor = new scope.Point(right.x1 + overscan, right.connectY)
+  const leftAnchor = new scope.Point(left.rightConnectX, left.rightConnectY)
+  const rightAnchor = new scope.Point(right.leftConnectX, right.leftConnectY)
   const vector = rightAnchor.subtract(leftAnchor)
   const length = Math.max(vector.length, 0.001)
   const normal = new scope.Point(-vector.y / length, vector.x / length)
@@ -149,12 +176,44 @@ function uniteShapes(shapes: GlyphShape[], settings: TextRenderSettings): string
   }
 }
 
+function buildDebugAnchors(shapes: GlyphShape[]): GlyphDebugAnchor[] {
+  if (shapes.length === 0) {
+    return []
+  }
+
+  const bounds = shapes.reduce(
+    (accumulator, glyph) => ({
+      x1: Math.min(accumulator.x1, glyph.x1),
+      y1: Math.min(accumulator.y1, glyph.y1),
+    }),
+    {
+      x1: Number.POSITIVE_INFINITY,
+      y1: Number.POSITIVE_INFINITY,
+    },
+  )
+
+  return shapes.flatMap((glyph) => [
+    {
+      char: glyph.char,
+      side: 'left',
+      xMm: glyph.leftConnectX - bounds.x1,
+      yMm: glyph.leftConnectY - bounds.y1,
+    },
+    {
+      char: glyph.char,
+      side: 'right',
+      xMm: glyph.rightConnectX - bounds.x1,
+      yMm: glyph.rightConnectY - bounds.y1,
+    },
+  ])
+}
+
 export function renderWord(
   item: InputItem,
   glyphMap: GlyphMap,
   settings: TextRenderSettings,
 ): RenderedWord | null {
-  const cacheKey = getCacheKey(item, settings)
+  const cacheKey = getCacheKey(item, settings, glyphMap.version)
   const cached = renderCache.get(cacheKey)
 
   if (cached) {
@@ -200,6 +259,7 @@ export function renderWord(
     pathData: unitedPath,
     widthMm: Math.max(0, bounds.x2 - bounds.x1),
     heightMm: Math.max(0, bounds.y2 - bounds.y1),
+    debugAnchors: buildDebugAnchors(glyphShapes),
   }
 
   renderCache.set(cacheKey, {

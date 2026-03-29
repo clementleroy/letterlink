@@ -22,12 +22,20 @@ export type BoardSettings = {
   verticalGapMm: number
 }
 
+export type GlyphDebugAnchor = {
+  char: string
+  side: 'left' | 'right'
+  xMm: number
+  yMm: number
+}
+
 export type RenderedWord = {
   id: string
   name: string
   pathData: string
   widthMm: number
   heightMm: number
+  debugAnchors?: GlyphDebugAnchor[]
 }
 
 export type PlacedItem = RenderedWord & {

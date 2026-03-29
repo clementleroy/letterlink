@@ -1,71 +1,168 @@
-export type GlyphData = {
-  pathData: string
-  advance: number
-  x1: number
-  y1: number
-  x2: number
-  y2: number
-  connectY: number
-}
+import opentype from 'opentype.js'
+import type { LetterlinkAccentPart, LetterlinkGlyph, LetterlinkProject } from '../types'
+import { materializeProjectGlyph, splitPathContours, type ProjectGlyphData } from './glyph-geometry'
 
 export type GlyphMap = {
   refSize: number
   baseline: number
-  glyphs: Map<number, GlyphData>
+  glyphs: Map<number, ProjectGlyphData>
+  version: string
 }
 
-const GLYPHS_URL = `${import.meta.env.BASE_URL}glyphs.svg`
+const REF_SIZE = 100
 
-let glyphMapPromise: Promise<GlyphMap> | null = null
+const SUPPORTED_CHARS = [
+  ' !"#$%&\'()*+,-./0123456789:;<=>?@',
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`',
+  'abcdefghijklmnopqrstuvwxyz{|}~',
+  'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ',
+  'àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ',
+  'ŒœŸ',
+  'ß',
+].join('')
 
-export async function loadGlyphs(): Promise<GlyphMap> {
-  if (!glyphMapPromise) {
-    glyphMapPromise = fetch(GLYPHS_URL)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error('Impossible de charger les glyphes.')
-        }
-        const text = await response.text()
-        return parseGlyphsSvg(text)
-      })
-      .catch((error) => {
-        glyphMapPromise = null
-        throw error
-      })
-  }
-  return glyphMapPromise
+function uniqueChars(input: string) {
+  return [...new Set([...input])]
 }
 
-function parseGlyphsSvg(svgText: string): GlyphMap {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(svgText, 'image/svg+xml')
-  const root = doc.getElementById('letterlink-glyphs') as Element
+function roundMetric(value: number) {
+  return Number(value.toFixed(4))
+}
 
-  if (!root) {
-    throw new Error('Fichier glyphs.svg invalide (id "letterlink-glyphs" introuvable).')
+function getFontFamily(font: opentype.Font, fileName: string) {
+  const fullNameRecord = font.names.fullName as Record<string, string> | undefined
+  const familyRecord = font.names.fontFamily as Record<string, string> | undefined
+
+  return (
+    fullNameRecord?.en ??
+    familyRecord?.en ??
+    familyRecord?.fr ??
+    fileName.replace(/\.[^.]+$/, '')
+  )
+}
+
+function buildAccentParts(contours: ReturnType<typeof splitPathContours>): {
+  basePathData: string
+  accentParts: LetterlinkAccentPart[]
+} {
+  if (contours.length <= 1) {
+    return {
+      basePathData: contours[0]?.pathData ?? '',
+      accentParts: [],
+    }
   }
 
-  const refSize = parseFloat((root as HTMLElement).dataset.refSize ?? '100')
-  const baseline = parseFloat((root as HTMLElement).dataset.baseline ?? '0')
-  const glyphs = new Map<number, GlyphData>()
+  const baseContour = [...contours].sort((left, right) => right.area - left.area)[0]
+  const baseHeight = Math.max(1, baseContour.bounds.y2 - baseContour.bounds.y1)
+  const accentThreshold = baseContour.bounds.y1 - Math.max(2, baseHeight * 0.06)
 
-  for (const el of root.querySelectorAll('path[id^="g-"]')) {
-    const pathEl = el as SVGPathElement & { dataset: DOMStringMap }
-    const codePoint = parseInt(pathEl.id.slice(2), 10)
-    if (isNaN(codePoint)) continue
+  const accentContours = contours.filter((contour) => contour.center.y < accentThreshold)
+  const accentPaths = new Set(accentContours.map((contour) => contour.pathData))
+  const baseContours = contours.filter((contour) => !accentPaths.has(contour.pathData))
 
-    const d = pathEl.getAttribute('d') ?? ''
-    const advance = parseFloat(pathEl.dataset.advance ?? '0')
-
-    // Invisible glyphs (e.g. space) have no bbox attributes
-    const x1 = parseFloat(pathEl.dataset.x1 ?? '0')
-    const y1 = parseFloat(pathEl.dataset.y1 ?? '0')
-    const x2 = parseFloat(pathEl.dataset.x2 ?? '0')
-    const y2 = parseFloat(pathEl.dataset.y2 ?? '0')
-    const connectY = parseFloat(pathEl.dataset.connectY ?? '0')
-
-    glyphs.set(codePoint, { pathData: d, advance, x1, y1, x2, y2, connectY })
+  if (accentContours.length === 0 || baseContours.length === 0) {
+    return {
+      basePathData: contours.map((contour) => contour.pathData).join(''),
+      accentParts: [],
+    }
   }
 
-  return { refSize, baseline, glyphs }
+  return {
+    basePathData: baseContours.map((contour) => contour.pathData).join(''),
+    accentParts: accentContours.map((contour, index) => ({
+      id: `accent-${index}`,
+      label: `Accent ${index + 1}`,
+      pathData: contour.pathData,
+      xOffsetRefMm: 0,
+      yOffsetRefMm: 0,
+    })),
+  }
+}
+
+function createProjectGlyph(
+  font: opentype.Font,
+  char: string,
+  baseline: number,
+): LetterlinkGlyph | null {
+  const glyph = font.stringToGlyphs(char)[0]
+
+  if (!glyph) {
+    return null
+  }
+
+  const rawPath = glyph.getPath(0, baseline, REF_SIZE)
+  const bbox = rawPath.getBoundingBox()
+  const pathData = rawPath.toPathData(4) ?? ''
+  const isVisible = pathData.trim().length > 0 && bbox.x1 !== Infinity && bbox.x2 !== Infinity
+  const contours = isVisible ? splitPathContours(pathData) : []
+  const { basePathData, accentParts } = buildAccentParts(contours)
+  const codePoint = char.codePointAt(0)
+
+  if (codePoint === undefined) {
+    return null
+  }
+
+  return {
+    char,
+    codePoint,
+    advance: roundMetric((glyph.advanceWidth ?? font.unitsPerEm * 0.5) * (REF_SIZE / font.unitsPerEm)),
+    connectY: isVisible ? roundMetric(bbox.y1 + (bbox.y2 - bbox.y1) * 0.72) : 0,
+    basePathData: isVisible ? basePathData : '',
+    xOffsetRefMm: 0,
+    yOffsetRefMm: 0,
+    advanceAdjustRefMm: 0,
+    connectYAdjustRefMm: 0,
+    leftConnectXRefMm: null,
+    leftConnectYRefMm: null,
+    rightConnectXRefMm: null,
+    rightConnectYRefMm: null,
+    scaleX: 1,
+    scaleY: 1,
+    accentParts,
+  }
+}
+
+export async function createProjectFromFontFile(file: File): Promise<LetterlinkProject> {
+  const buffer = await file.arrayBuffer()
+  const font = opentype.parse(buffer)
+  const baseline = roundMetric(font.ascender * (REF_SIZE / font.unitsPerEm))
+  const now = new Date().toISOString()
+  const glyphs = uniqueChars(SUPPORTED_CHARS)
+    .map((char) => createProjectGlyph(font, char, baseline))
+    .filter((glyph): glyph is LetterlinkGlyph => Boolean(glyph))
+
+  if (glyphs.length === 0) {
+    throw new Error('Impossible d’extraire des glyphes depuis cette police.')
+  }
+
+  return {
+    fileType: 'letterlink-project',
+    version: 1,
+    refSize: REF_SIZE,
+    baseline,
+    createdAt: now,
+    updatedAt: now,
+    source: {
+      kind: 'font',
+      fileName: file.name,
+      fontFamily: getFontFamily(font, file.name),
+      unitsPerEm: font.unitsPerEm,
+    },
+    glyphs,
+  }
+}
+
+export function createGlyphMap(project: LetterlinkProject): GlyphMap {
+  const glyphs = new Map<number, ProjectGlyphData>()
+
+  project.glyphs.forEach((glyph) => {
+    glyphs.set(glyph.codePoint, materializeProjectGlyph(glyph))
+  })
+
+  return {
+    refSize: project.refSize,
+    baseline: project.baseline,
+    glyphs,
+    version: JSON.stringify(project),
+  }
 }

@@ -1,77 +1,72 @@
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ChangeEvent } from 'react'
-import './App.css'
-import {
-  DEFAULT_BOARD_SETTINGS,
-  DEFAULT_INPUT_TEXT,
-  DEFAULT_RENDER_SETTINGS,
-} from './lib/constants'
-import { triggerZipDownload } from './lib/export'
-import { loadGlyphs, type GlyphMap } from './lib/glyphs'
-import { parseCsvText, toInputItems, type ParsedCsv } from './lib/input'
-import { buildBoardPages } from './lib/layout'
+import './styles/app-shell.css'
+import './styles/project-workflow.css'
+import './styles/configurator.css'
+import { AppHero } from './components/AppHero'
+import { ProjectStatusStrip } from './components/ProjectStatusStrip'
+import { WorkspaceSwitcher } from './components/WorkspaceSwitcher'
+import { parseProjectFileText, triggerProjectDownload, triggerZipDownload } from './lib/export'
 import { buildSvgDocument } from './lib/svg'
-import type {
-  BoardPage,
-  BoardSettings,
-  InputItem,
-  TextRenderSettings,
-} from './types'
+import { useConfiguratorState } from './hooks/useConfiguratorState'
+import { useGlyphEditorState } from './hooks/useGlyphEditorState'
+import { useLetterlinkProject } from './hooks/useLetterlinkProject'
+import { PrepareWorkspace } from './features/project-workflow/PrepareWorkspace'
+import { ConfiguratorWorkspace } from './features/configurator/ConfiguratorWorkspace'
+import type { GlyphDebugAnchor } from './types'
+
+type WorkspaceStep = 'prepare' | 'configure'
+
+function renderBoardDebugAnchors(itemId: string, anchors: GlyphDebugAnchor[] | undefined) {
+  if (!anchors) {
+    return null
+  }
+
+  return anchors.map((anchor, index) => (
+    <g
+      key={`${itemId}-${anchor.char}-${anchor.side}-${index}`}
+      className={`debug-anchor debug-anchor-${anchor.side}`}
+      transform={`translate(${anchor.xMm} ${anchor.yMm})`}
+    >
+      <circle r="1.2" />
+      <text x="1.8" y="-1.4">
+        {anchor.char}:{anchor.side === 'left' ? 'L' : 'R'}
+      </text>
+    </g>
+  ))
+}
 
 function App() {
-  const [glyphMap, setGlyphMap] = useState<GlyphMap | null>(null)
-  const [fontError, setFontError] = useState<string>('')
-  const [sourceMode, setSourceMode] = useState<'text' | 'csv'>('text')
-  const [rawText, setRawText] = useState(DEFAULT_INPUT_TEXT)
-  const [csvData, setCsvData] = useState<ParsedCsv | null>(null)
-  const [selectedColumn, setSelectedColumn] = useState('0')
-  const [boardSettings, setBoardSettings] = useState<BoardSettings>(DEFAULT_BOARD_SETTINGS)
-  const [renderSettings, setRenderSettings] = useState<TextRenderSettings>(DEFAULT_RENDER_SETTINGS)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [statusMessage, setStatusMessage] = useState('')
+  const projectState = useLetterlinkProject(parseProjectFileText)
+  const configuratorState = useConfiguratorState(projectState.glyphMap)
+  const glyphEditorState = useGlyphEditorState(projectState.project, projectState.glyphMap)
+  const [workspaceStep, setWorkspaceStep] = useState<WorkspaceStep>(
+    projectState.project ? 'configure' : 'prepare',
+  )
 
-  const deferredRawText = useDeferredValue(rawText)
+  const canConfigure = Boolean(projectState.glyphMap)
+  const projectStats = {
+    entries: configuratorState.inputItems.length,
+    pages: configuratorState.pages.length,
+    glyphs: projectState.project?.glyphs.length ?? 0,
+    accents:
+      projectState.project?.glyphs.reduce((sum, glyph) => sum + glyph.accentParts.length, 0) ?? 0,
+  }
 
-  useEffect(() => {
-    let cancelled = false
+  const handleFontUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
 
-    loadGlyphs()
-      .then((loaded) => {
-        if (!cancelled) {
-          setGlyphMap(loaded)
-        }
-      })
-      .catch((error: Error) => {
-        if (!cancelled) {
-          setFontError(error.message)
-        }
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  const inputItems = useMemo<InputItem[]>(() => {
-    if (sourceMode === 'csv' && csvData) {
-      return toInputItems(csvData.rows, Number(selectedColumn))
+    if (!file) {
+      return
     }
 
-    return toInputItems(deferredRawText)
-  }, [csvData, deferredRawText, selectedColumn, sourceMode])
+    await projectState.importFontFile(file)
+    glyphEditorState.ensureSelectedGlyph()
+    setWorkspaceStep('prepare')
+    event.target.value = ''
+  }
 
-  const pages = useMemo<BoardPage[]>(() => {
-    if (!glyphMap || fontError) {
-      return []
-    }
-
-    return buildBoardPages(inputItems, glyphMap, renderSettings, boardSettings)
-  }, [boardSettings, glyphMap, fontError, inputItems, renderSettings])
-
-  const safeCurrentPage = pages.length === 0 ? 0 : Math.min(currentPage, pages.length - 1)
-  const currentBoard = pages[safeCurrentPage]
-
-  const onCsvUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleProjectUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
 
     if (!file) {
@@ -79,421 +74,156 @@ function App() {
     }
 
     const text = await file.text()
-    const parsed = parseCsvText(text)
-
-    startTransition(() => {
-      setCsvData(parsed)
-      setSelectedColumn(parsed.headers[0]?.index.toString() ?? '0')
-      setSourceMode('csv')
-      setCurrentPage(0)
-    })
+    projectState.importProjectText(text, file.name)
+    glyphEditorState.ensureSelectedGlyph()
+    setWorkspaceStep('configure')
+    event.target.value = ''
   }
 
-  const updateBoardSetting = <Key extends keyof BoardSettings>(
-    key: Key,
-    value: number,
-  ) => {
-    setBoardSettings((previous) => ({ ...previous, [key]: value }))
-  }
+  const handleCsvUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
 
-  const updateRenderSetting = <Key extends keyof TextRenderSettings>(
-    key: Key,
-    value: TextRenderSettings[Key],
-  ) => {
-    setRenderSettings((previous) => ({ ...previous, [key]: value }))
-  }
-
-  const downloadAllBoards = async () => {
-    if (pages.length === 0) {
+    if (!file) {
       return
     }
 
-    setStatusMessage('Préparation du ZIP…')
-
-    try {
-      await triggerZipDownload(pages)
-      setStatusMessage(`${pages.length} planche(s) SVG prêtes.`)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Export impossible.'
-      setStatusMessage(message)
-    }
+    await configuratorState.onCsvUpload(file)
+    event.target.value = ''
   }
 
-  const downloadCurrentBoard = () => {
-    if (!currentBoard) {
+  const handleDownloadProject = () => {
+    if (!projectState.project) {
       return
     }
 
-    const blob = new Blob([buildSvgDocument(currentBoard)], {
+    triggerProjectDownload(projectState.project)
+  }
+
+  const handleDownloadBoard = () => {
+    if (!configuratorState.currentBoard) {
+      return
+    }
+
+    const blob = new Blob([buildSvgDocument(configuratorState.currentBoard)], {
       type: 'image/svg+xml;charset=utf-8',
     })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `planche-${currentBoard.index + 1}.svg`
+    anchor.download = `planche-${configuratorState.currentBoard.index + 1}.svg`
     anchor.click()
     URL.revokeObjectURL(url)
-    setStatusMessage(`Planche ${currentBoard.index + 1} téléchargée.`)
+    configuratorState.setStatusMessage(
+      `Board ${configuratorState.currentBoard.index + 1} downloaded.`,
+    )
   }
 
-  const csvColumns = csvData?.headers ?? []
-  const previewScale = currentBoard
-    ? Math.min(1, 720 / Math.max(currentBoard.widthMm, currentBoard.heightMm))
-    : 1
+  const handleDownloadAll = async () => {
+    if (configuratorState.pages.length === 0) {
+      return
+    }
+
+    configuratorState.setStatusMessage('Preparing SVG export...')
+
+    try {
+      await triggerZipDownload(configuratorState.pages)
+      configuratorState.setStatusMessage(`${configuratorState.pages.length} board(s) exported.`)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Export failed.'
+      configuratorState.setStatusMessage(message)
+    }
+  }
 
   return (
     <main className="app-shell">
-      <section className="hero-panel">
-        <div>
-          <p className="eyebrow">SVG pour découpe laser</p>
-          <h1>Génère des prénoms cursifs prêts à découper.</h1>
-          <p className="hero-copy">
-            Saisis des prénoms ou importe un CSV, ajuste la taille de planche en
-            millimètres, puis exporte une ou plusieurs planches SVG paginées.
-          </p>
-        </div>
+      <AppHero
+        accents={projectStats.accents}
+        glyphs={projectStats.glyphs}
+        pages={projectStats.pages}
+      />
 
-        <div className="hero-stats">
-          <div>
-            <strong>{inputItems.length}</strong>
-            <span>entrées</span>
-          </div>
-          <div>
-            <strong>{pages.length}</strong>
-            <span>planches</span>
-          </div>
-          <div>
-            <strong>{boardSettings.widthMm} × {boardSettings.heightMm}</strong>
-            <span>mm</span>
-          </div>
-        </div>
-      </section>
+      <WorkspaceSwitcher
+        canConfigure={canConfigure}
+        onChange={setWorkspaceStep}
+        workspaceStep={workspaceStep}
+      />
 
-      <section className="workspace">
-        <aside className="panel controls-panel">
-          <div className="section-head">
-            <h2>Sources</h2>
-            <div className="segmented">
-              <button
-                className={sourceMode === 'text' ? 'active' : ''}
-                onClick={() => setSourceMode('text')}
-                type="button"
-              >
-                Texte
-              </button>
-              <button
-                className={sourceMode === 'csv' ? 'active' : ''}
-                onClick={() => setSourceMode('csv')}
-                type="button"
-              >
-                CSV
-              </button>
-            </div>
-          </div>
+      <ProjectStatusStrip project={projectState.project} readiness={projectState.readiness} />
 
-          <label className="field">
-            <span>Prénoms, un par ligne</span>
-            <textarea
-              rows={10}
-              value={rawText}
-              onChange={(event) => setRawText(event.target.value)}
-              placeholder="Élodie&#10;Maëlys&#10;Anaïs"
-            />
-          </label>
-
-          <label className="field">
-            <span>Importer un CSV</span>
-            <input accept=".csv,text/csv" onChange={onCsvUpload} type="file" />
-          </label>
-
-          {csvColumns.length > 0 ? (
-            <label className="field">
-              <span>Colonne à convertir</span>
-              <select
-                value={selectedColumn}
-                onChange={(event) => setSelectedColumn(event.target.value)}
-              >
-                {csvColumns.map((column) => (
-                  <option key={column.index} value={column.index}>
-                    {column.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
-          <div className="field-grid">
-            <label className="field">
-              <span>Largeur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.widthMm}
-                onChange={(event) =>
-                  updateBoardSetting('widthMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Hauteur planche (mm)</span>
-              <input
-                min="50"
-                step="1"
-                type="number"
-                value={boardSettings.heightMm}
-                onChange={(event) =>
-                  updateBoardSetting('heightMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Marge (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.marginMm}
-                onChange={(event) =>
-                  updateBoardSetting('marginMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Padding prénom (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.itemPaddingMm}
-                onChange={(event) =>
-                  updateBoardSetting('itemPaddingMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement horizontal (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.horizontalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('horizontalGapMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement vertical (mm)</span>
-              <input
-                min="0"
-                step="0.5"
-                type="number"
-                value={boardSettings.verticalGapMm}
-                onChange={(event) =>
-                  updateBoardSetting('verticalGapMm', Number(event.target.value))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="section-head">
-            <h2>Rendu typographique</h2>
-          </div>
-
-          <div className="field-grid">
-            <label className="field">
-              <span>Taille police (mm)</span>
-              <input
-                min="5"
-                step="0.5"
-                type="number"
-                value={renderSettings.fontSizeMm}
-                onChange={(event) =>
-                  updateRenderSetting('fontSizeMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Espacement lettres (mm)</span>
-              <input
-                step="0.2"
-                type="number"
-                value={renderSettings.letterSpacingMm}
-                onChange={(event) =>
-                  updateRenderSetting('letterSpacingMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Chevauchement (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.overlapMm}
-                onChange={(event) =>
-                  updateRenderSetting('overlapMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Pont de liaison (mm)</span>
-              <input
-                min="0"
-                step="0.2"
-                type="number"
-                value={renderSettings.bridgeThicknessMm}
-                onChange={(event) =>
-                  updateRenderSetting(
-                    'bridgeThicknessMm',
-                    Number(event.target.value),
-                  )
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Contour laser (mm)</span>
-              <input
-                min="0.05"
-                step="0.05"
-                type="number"
-                value={renderSettings.strokeWidthMm}
-                onChange={(event) =>
-                  updateRenderSetting('strokeWidthMm', Number(event.target.value))
-                }
-              />
-            </label>
-            <label className="field">
-              <span>Mode</span>
-              <select
-                value={renderSettings.renderMode}
-                onChange={(event) =>
-                  updateRenderSetting(
-                    'renderMode',
-                    event.target.value as TextRenderSettings['renderMode'],
-                  )
-                }
-              >
-                <option value="fill">Contours remplis</option>
-                <option value="stroke">Trajets en trait</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="status-block">
-            <p>
-              <strong>Police:</strong>{' '}
-              {glyphMap ? 'Pacifico (glyphs.svg)' : fontError || 'Chargement…'}
-            </p>
-            <p>
-              <strong>Sortie:</strong> SVG multi-planches, dimensions physiques en
-              mm.
-            </p>
-            {statusMessage ? <p>{statusMessage}</p> : null}
-          </div>
-        </aside>
-
-        <section className="panel preview-panel">
-          <div className="section-head preview-head">
-            <div>
-              <h2>Aperçu des planches</h2>
-              <p>
-                Le placement optimise le remplissage global et crée une nouvelle
-                planche si la précédente déborde.
-              </p>
-            </div>
-            <div className="button-row">
-              <button onClick={downloadCurrentBoard} type="button" disabled={!currentBoard}>
-                Télécharger la planche
-              </button>
-              <button onClick={downloadAllBoards} type="button" disabled={pages.length === 0}>
-                Télécharger tout en ZIP
-              </button>
-            </div>
-          </div>
-
-          <div className="page-tabs">
-            {pages.map((page) => (
-              <button
-                key={page.index}
-                className={page.index === safeCurrentPage ? 'active' : ''}
-                onClick={() => setCurrentPage(page.index)}
-                type="button"
-              >
-                Planche {page.index + 1}
-              </button>
-            ))}
-          </div>
-
-          <div className="preview-stage">
-            {currentBoard ? (
-              <div
-                className="board-frame"
-                style={{
-                  width: `${currentBoard.widthMm * previewScale}px`,
-                }}
-              >
-                <svg
-                  aria-label={`Planche ${currentBoard.index + 1}`}
-                  className="board-svg"
-                  height={`${currentBoard.heightMm}mm`}
-                  viewBox={`0 0 ${currentBoard.widthMm} ${currentBoard.heightMm}`}
-                  width={`${currentBoard.widthMm}mm`}
-                >
-                  <rect
-                    className="board-background"
-                    height={currentBoard.heightMm}
-                    rx="3"
-                    width={currentBoard.widthMm}
-                  />
-                  {currentBoard.items.map((item) => (
-                    <g
-                      key={`${item.id}-${item.name}`}
-                      transform={`translate(${item.xMm} ${item.yMm})`}
-                    >
-                      {renderSettings.renderMode === 'fill' ? (
-                        <path d={item.pathData} fill="currentColor" />
-                      ) : (
-                        <path
-                          d={item.pathData}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeLinejoin="round"
-                          strokeWidth={renderSettings.strokeWidthMm}
-                        />
-                      )}
-                    </g>
-                  ))}
-                </svg>
-              </div>
-            ) : (
-              <div className="empty-state">
-                <h3>Prêt à générer</h3>
-                <p>
-                  Charge la police intégrée et ajoute des prénoms pour afficher les
-                  planches.
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="summary-grid">
-            <article>
-              <span>Pages générées</span>
-              <strong>{pages.length}</strong>
-            </article>
-            <article>
-              <span>Entrées utilisables</span>
-              <strong>{inputItems.length}</strong>
-            </article>
-            <article>
-              <span>Page active</span>
-              <strong>{currentBoard ? currentBoard.index + 1 : 0}</strong>
-            </article>
-          </div>
-        </section>
-      </section>
+      {workspaceStep === 'prepare' ? (
+        <PrepareWorkspace
+          activeAnchorSide={glyphEditorState.activeAnchorSide}
+          availableGlyphChars={glyphEditorState.availableGlyphChars}
+          canConfigure={canConfigure}
+          glyphEditorAnchors={glyphEditorState.glyphEditorAnchors}
+          glyphEditorLayers={glyphEditorState.glyphEditorLayers}
+          glyphEditorLayout={glyphEditorState.glyphEditorLayout}
+          project={projectState.project}
+          projectError={projectState.projectError}
+          projectMessage={projectState.projectMessage}
+          safeSelectedAccentId={glyphEditorState.safeSelectedAccentId}
+          safeSelectedGlyphChar={glyphEditorState.safeSelectedGlyphChar}
+          selectedAccent={glyphEditorState.selectedAccent}
+          selectedGlyph={glyphEditorState.selectedGlyph}
+          selectedGlyphData={glyphEditorState.selectedGlyphData}
+          onAccentMouseDown={glyphEditorState.onAccentMouseDown}
+          onClearProject={projectState.clearProject}
+          onDownloadProject={handleDownloadProject}
+          onFontUpload={handleFontUpload}
+          onGlyphCanvasClick={(event) =>
+            glyphEditorState.onGlyphCanvasClick(event, projectState.updateGlyph)
+          }
+          onGlyphCanvasMouseMove={(event) =>
+            glyphEditorState.onGlyphCanvasMouseMove(event, projectState.updateGlyph)
+          }
+          onNudgeSelectedAccent={(deltaX, deltaY) =>
+            glyphEditorState.nudgeSelectedAccent(deltaX, deltaY, projectState.updateGlyph)
+          }
+          onOpenConfigurator={() => setWorkspaceStep('configure')}
+          onProjectUpload={handleProjectUpload}
+          onResetSelectedAccent={() =>
+            glyphEditorState.resetSelectedAccent(projectState.updateGlyph)
+          }
+          onResetSelectedAnchor={(side) =>
+            glyphEditorState.resetSelectedAnchor(side, projectState.updateGlyph)
+          }
+          onSetActiveAnchorSide={glyphEditorState.setActiveAnchorSide}
+          onSetSelectedAccentId={glyphEditorState.setSelectedAccentId}
+          onSetSelectedGlyphChar={glyphEditorState.setSelectedGlyphChar}
+          onStopAccentDrag={glyphEditorState.stopAccentDrag}
+        />
+      ) : (
+        <ConfiguratorWorkspace
+          boardSettings={configuratorState.boardSettings}
+          csvColumns={configuratorState.csvColumns}
+          currentBoard={configuratorState.currentBoard}
+          currentPageIndex={configuratorState.currentPageIndex}
+          entries={projectStats.entries}
+          pages={configuratorState.pages}
+          previewScale={configuratorState.previewScale}
+          project={projectState.project}
+          rawText={configuratorState.rawText}
+          renderBoardDebugAnchors={(itemId, anchors) =>
+            configuratorState.showDebugAnchors ? renderBoardDebugAnchors(itemId, anchors) : null
+          }
+          renderSettings={configuratorState.renderSettings}
+          selectedColumn={configuratorState.selectedColumn}
+          showDebugAnchors={configuratorState.showDebugAnchors}
+          sourceMode={configuratorState.sourceMode}
+          statusMessage={configuratorState.statusMessage}
+          onCsvUpload={handleCsvUpload}
+          onCurrentPageChange={configuratorState.setCurrentPage}
+          onDownloadAll={handleDownloadAll}
+          onDownloadBoard={handleDownloadBoard}
+          onDownloadProject={handleDownloadProject}
+          onSetRawText={configuratorState.setRawText}
+          onSetSelectedColumn={configuratorState.setSelectedColumn}
+          onSetShowDebugAnchors={configuratorState.setShowDebugAnchors}
+          onSetSourceMode={configuratorState.setSourceMode}
+          updateBoardSetting={configuratorState.updateBoardSetting}
+          updateRenderSetting={configuratorState.updateRenderSetting}
+        />
+      )}
     </main>
   )
 }

@@ -1,6 +1,15 @@
 import JSZip from 'jszip'
 import { buildSvgDocument } from './svg'
-import type { BoardPage } from '../types'
+import type { BoardPage, LetterlinkProject, ProjectFileEnvelope } from '../types'
+
+function downloadBlob(blob: Blob, fileName: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = fileName
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
 
 export async function triggerZipDownload(pages: BoardPage[]) {
   const zip = new JSZip()
@@ -10,10 +19,58 @@ export async function triggerZipDownload(pages: BoardPage[]) {
   })
 
   const blob = await zip.generateAsync({ type: 'blob' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = 'planches-svg.zip'
-  anchor.click()
-  URL.revokeObjectURL(url)
+  downloadBlob(blob, 'planches-svg.zip')
+}
+
+export function triggerProjectDownload(project: LetterlinkProject) {
+  const envelope: ProjectFileEnvelope = {
+    fileType: 'letterlink-project',
+    version: 1,
+    project,
+  }
+  const slug = project.source.fontFamily
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  const blob = new Blob([JSON.stringify(envelope, null, 2)], {
+    type: 'application/json;charset=utf-8',
+  })
+
+  downloadBlob(blob, `${slug || 'letterlink-project'}.letterlink.json`)
+}
+
+export function parseProjectFileText(text: string): LetterlinkProject {
+  let parsed: unknown
+
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    throw new Error('Le fichier projet est invalide.')
+  }
+
+  if (
+    typeof parsed !== 'object' ||
+    parsed === null ||
+    !('fileType' in parsed) ||
+    !('version' in parsed) ||
+    !('project' in parsed)
+  ) {
+    throw new Error('Format de projet Letterlink non reconnu.')
+  }
+
+  const envelope = parsed as ProjectFileEnvelope
+
+  if (envelope.fileType !== 'letterlink-project' || envelope.version !== 1) {
+    throw new Error('Version de projet non prise en charge.')
+  }
+
+  if (
+    !envelope.project ||
+    envelope.project.fileType !== 'letterlink-project' ||
+    envelope.project.version !== 1
+  ) {
+    throw new Error('Projet Letterlink incomplet.')
+  }
+
+  return envelope.project
 }
