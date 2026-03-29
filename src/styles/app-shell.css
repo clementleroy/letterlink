@@ -98,6 +98,10 @@
   gap: 16px;
 }
 
+.section-head > div {
+  min-width: 0;
+}
+
 .section-head h2,
 .preview-head h2 {
   margin: 0;
@@ -128,6 +132,7 @@
     border-color 160ms ease,
     background 160ms ease,
     opacity 160ms ease;
+  min-height: 42px;
 }
 
 .workspace-switcher button.is-active,
@@ -175,6 +180,7 @@
   padding: 12px 14px;
   font: inherit;
   resize: vertical;
+  min-height: 44px;
 }
 
 .field input:focus,
@@ -227,7 +233,8 @@
 
 @media (max-width: 720px) {
   .app-shell {
-    padding: 18px;
+    padding: 14px;
+    gap: 14px;
   }
 
   .hero-stats,
@@ -239,7 +246,46 @@
 
   .panel,
   .hero-panel {
-    padding: 18px;
+    padding: 16px;
     border-radius: 22px;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .workspace-switcher,
+  .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .workspace-switcher button,
+  .button-row button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .page-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .page-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .status-block {
+    padding: 14px;
   }
 }
