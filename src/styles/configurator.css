@@ -77,4 +77,10 @@
   .field-grid {
     grid-template-columns: 1fr;
   }
+
+  .preview-stage {
+    min-height: 340px;
+    padding: 14px;
+    border-radius: 20px;
+  }
 }
