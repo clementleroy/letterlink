@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:codex": "vite --host 0.0.0.0 --port 4173 --strictPort",
     "build": "tsc -b && vite build && cp dist/index.html dist/404.html",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:codex": "vite preview --host 0.0.0.0 --port 4173 --strictPort",
     "deploy:cloudflare": "node ./scripts/deploy-cloudflare.mjs"
   },
   "dependencies": {
