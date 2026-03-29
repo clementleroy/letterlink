@@ -97,6 +97,7 @@ function createProjectGlyph(
   const contours = isVisible ? splitPathContours(pathData) : []
   const { basePathData, accentParts } = buildAccentParts(contours)
   const codePoint = char.codePointAt(0)
+  const connectY = isVisible ? roundMetric(bbox.y1 + (bbox.y2 - bbox.y1) * 0.72) : 0
 
   if (codePoint === undefined) {
     return null
@@ -106,16 +107,16 @@ function createProjectGlyph(
     char,
     codePoint,
     advance: roundMetric((glyph.advanceWidth ?? font.unitsPerEm * 0.5) * (REF_SIZE / font.unitsPerEm)),
-    connectY: isVisible ? roundMetric(bbox.y1 + (bbox.y2 - bbox.y1) * 0.72) : 0,
+    connectY,
     basePathData: isVisible ? basePathData : '',
     xOffsetRefMm: 0,
     yOffsetRefMm: 0,
     advanceAdjustRefMm: 0,
     connectYAdjustRefMm: 0,
-    leftConnectXRefMm: null,
-    leftConnectYRefMm: null,
-    rightConnectXRefMm: null,
-    rightConnectYRefMm: null,
+    leftConnectXRefMm: isVisible ? roundMetric(bbox.x1) : null,
+    leftConnectYRefMm: isVisible ? connectY : null,
+    rightConnectXRefMm: isVisible ? roundMetric(bbox.x2) : null,
+    rightConnectYRefMm: isVisible ? connectY : null,
     scaleX: 1,
     scaleY: 1,
     accentParts,

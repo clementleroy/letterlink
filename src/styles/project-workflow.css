@@ -67,8 +67,16 @@
   cursor: grab;
 }
 
+.glyph-editor-path.is-accent:hover {
+  fill: rgba(104, 80, 55, 0.92);
+}
+
 .glyph-editor-path.is-selected {
   fill: rgba(186, 108, 38, 0.94);
+}
+
+.glyph-editor-path.is-accent.is-selected {
+  cursor: grabbing;
 }
 
 .editor-anchor {
@@ -95,6 +103,60 @@
 .layer-card.is-selected {
   border-color: rgba(186, 108, 38, 0.35);
   background: rgba(186, 108, 38, 0.08);
+}
+
+.layer-card-clickable {
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.layer-card-clickable:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(186, 108, 38, 0.22);
+}
+
+.layer-card-clickable:focus-visible {
+  outline: 2px solid rgba(186, 108, 38, 0.5);
+  outline-offset: 1px;
+}
+
+.nudge-dpad {
+  display: grid;
+  grid-template-columns: 42px 42px 42px;
+  grid-template-rows: 42px 42px;
+  gap: 4px;
+  align-items: center;
+}
+
+.nudge-dpad button {
+  padding: 0;
+  min-height: 42px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nudge-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.nudge-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.nudge-down {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.nudge-right {
+  grid-column: 3;
+  grid-row: 2;
 }
 
 @media (max-width: 1100px) {
