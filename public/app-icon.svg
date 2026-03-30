@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="appIconTitle">
+  <title id="appIconTitle">Letterlink app icon</title>
+  <defs>
+    <linearGradient id="outerBg" x1="24" x2="232" y1="20" y2="236" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fcf5ea" />
+      <stop offset="1" stop-color="#e4c49f" />
+    </linearGradient>
+    <linearGradient id="innerBg" x1="36" x2="220" y1="34" y2="222" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f9f1e5" />
+      <stop offset="1" stop-color="#edd6b8" />
+    </linearGradient>
+    <linearGradient id="mark" x1="84" x2="178" y1="74" y2="188" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a75e1f" />
+      <stop offset="1" stop-color="#cf7d2d" />
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#outerBg)" />
+  <rect x="28" y="28" width="200" height="200" rx="48" fill="url(#innerBg)" />
+  <rect x="30" y="30" width="196" height="196" rx="46" fill="none" stroke="#fbf4e9" stroke-width="4" />
+
+  <path
+    d="M104 72v66c0 10 8 18 18 18h34"
+    fill="none"
+    stroke="url(#mark)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="22"
+  />
+  <path
+    d="M152 184v-66c0-10-8-18-18-18h-34"
+    fill="none"
+    stroke="url(#mark)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="22"
+  />
+
+  <circle cx="128" cy="128" r="22" fill="#d69350" />
+  <circle cx="128" cy="128" r="12" fill="#fcf5ea" />
+  <circle cx="176" cy="80" r="10" fill="#e08a35" />
+</svg>
