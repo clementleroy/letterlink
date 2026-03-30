@@ -1,0 +1,24 @@
+.shell {
+  min-height: 100vh;
+  width: min(100%, var(--page-max-width));
+  margin: 0 auto;
+  padding: 32px;
+  display: grid;
+  gap: 28px;
+}
+
+.topbar {
+  display: grid;
+  gap: 20px;
+}
+
+@media (max-width: 720px) {
+  .shell {
+    padding: 14px;
+    gap: 16px;
+  }
+
+  .topbar {
+    gap: 14px;
+  }
+}

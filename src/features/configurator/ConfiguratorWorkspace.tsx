@@ -6,6 +6,7 @@ import type {
   LetterlinkProject,
   TextRenderSettings,
 } from '../../types'
+import styles from './components/ConfiguratorWorkspace.module.css'
 import { BoardPreviewPanel } from './BoardPreviewPanel'
 import { ConfiguratorControlsPanel } from './ConfiguratorControlsPanel'
 
@@ -41,7 +42,7 @@ type ConfiguratorWorkspaceProps = {
 
 export function ConfiguratorWorkspace(props: ConfiguratorWorkspaceProps) {
   return (
-    <section className="workspace">
+    <section className={styles.workspace}>
       <ConfiguratorControlsPanel
         boardSettings={props.boardSettings}
         csvColumns={props.csvColumns}
@@ -60,14 +61,13 @@ export function ConfiguratorWorkspace(props: ConfiguratorWorkspaceProps) {
         updateBoardSetting={props.updateBoardSetting}
         updateRenderSetting={props.updateRenderSetting}
       />
-      <div className="preview-stack">
+      <div className={styles.previewStack}>
         <BoardPreviewPanel
           currentBoard={props.currentBoard}
           currentPageIndex={props.currentPageIndex}
-          entries={props.entries}
+          marginMm={props.boardSettings.marginMm}
           pages={props.pages}
           previewScale={props.previewScale}
-          project={props.project}
           renderSettings={props.renderSettings}
           strings={props.strings}
           onCurrentPageChange={props.onCurrentPageChange}

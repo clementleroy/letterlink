@@ -1,0 +1,40 @@
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 2px;
+}
+
+.tabs button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  border-radius: var(--radius-pill);
+  padding: 10px 14px;
+  font: inherit;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.active {
+  border-color: rgba(var(--accent-rgb), 0.14) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(252, 246, 239, 0.72)),
+    var(--surface-strong) !important;
+  color: var(--heading) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 720px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-mask-image: linear-gradient(to right, black 84%, transparent 100%);
+    mask-image: linear-gradient(to right, black 84%, transparent 100%);
+  }
+
+  .tabs button {
+    flex: 0 0 auto;
+  }
+}

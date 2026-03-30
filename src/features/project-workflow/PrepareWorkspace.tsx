@@ -6,6 +6,7 @@ import type {
   ProjectGlyphData,
 } from '../../lib/glyph-geometry'
 import type { AppStrings, LetterlinkGlyph } from '../../types'
+import styles from './components/PrepareWorkspace.module.css'
 import { GlyphEditorPanel } from './GlyphEditorPanel'
 
 type PrepareWorkspaceProps = {
@@ -40,7 +41,7 @@ type PrepareWorkspaceProps = {
 
 export function PrepareWorkspace(props: PrepareWorkspaceProps) {
   return (
-    <section className="prepare-layout prepare-layout-single">
+    <section className={styles.layout}>
       <GlyphEditorPanel
         activeAnchorSide={props.activeAnchorSide}
         availableGlyphChars={props.availableGlyphChars}

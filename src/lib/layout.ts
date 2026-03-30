@@ -61,8 +61,8 @@ function placeOnShelf(
   board.items.push({
     ...item,
     pageIndex: board.index,
-    xMm: boardSettings.marginMm + nextX + boardSettings.itemPaddingMm,
-    yMm: boardSettings.marginMm + shelf.y + boardSettings.itemPaddingMm,
+    xMm: boardSettings.marginMm + nextX,
+    yMm: boardSettings.marginMm + shelf.y,
   })
   shelf.usedWidth = nextX + item.packedWidth
 }
@@ -83,8 +83,8 @@ function placeOnNewShelf(
   board.items.push({
     ...item,
     pageIndex: board.index,
-    xMm: boardSettings.marginMm + boardSettings.itemPaddingMm,
-    yMm: boardSettings.marginMm + nextY + boardSettings.itemPaddingMm,
+    xMm: boardSettings.marginMm,
+    yMm: boardSettings.marginMm + nextY,
   })
 }
 
@@ -203,57 +203,20 @@ function applyPlacement(
   placeOnNewShelf(placement.board, item, boardSettings, placement.nextY)
 }
 
-export function buildBoardPages(
-  items: InputItem[],
-  glyphMap: GlyphMap,
-  renderSettings: TextRenderSettings,
+function packWithOrder(
+  orderedItems: RenderCandidate[],
   boardSettings: BoardSettings,
-): BoardPage[] {
-  const rendered = items
-    .map((item) => renderWord(item, glyphMap, renderSettings))
-    .filter((item): item is RenderedWord => Boolean(item))
-    .map((item) => ({
-      ...item,
-      packedWidth: item.widthMm + boardSettings.itemPaddingMm * 2,
-      packedHeight: item.heightMm + boardSettings.itemPaddingMm * 2,
-    }))
-    .sort((left, right) => {
-      const byHeight = right.packedHeight - left.packedHeight
-
-      if (byHeight !== 0) {
-        return byHeight
-      }
-
-      const byWidth = right.packedWidth - left.packedWidth
-
-      if (byWidth !== 0) {
-        return byWidth
-      }
-
-      return right.widthMm * right.heightMm - left.widthMm * left.heightMm
-    })
-
-  const availableWidth = boardSettings.widthMm - boardSettings.marginMm * 2
-  const availableHeight = boardSettings.heightMm - boardSettings.marginMm * 2
-
-  if (availableWidth <= 0 || availableHeight <= 0) {
-    return []
-  }
-
+  availableWidth: number,
+  availableHeight: number,
+): WorkingBoard[] {
   const boards: WorkingBoard[] = []
 
-  rendered.forEach((item) => {
-    const placement = getBestPlacement(
-      boards,
-      item,
-      boardSettings,
-      availableWidth,
-      availableHeight,
-    )
+  for (const item of orderedItems) {
+    const placement = getBestPlacement(boards, item, boardSettings, availableWidth, availableHeight)
 
     if (placement) {
       applyPlacement(placement, item, boardSettings)
-      return
+      continue
     }
 
     const nextBoard = createWorkingBoard(boards.length)
@@ -266,12 +229,78 @@ export function buildBoardPages(
     )
 
     if (!nextBoardPlacement) {
-      return
+      continue
     }
 
     applyPlacement(nextBoardPlacement, item, boardSettings)
     boards.push(nextBoard)
-  })
+  }
+
+  return boards
+}
+
+function scoreBoards(boards: WorkingBoard[], availableHeight: number): number {
+  if (boards.length === 0) return 0
+  const lastShelf = boards.at(-1)!.shelves.at(-1)
+  const usedHeight = lastShelf ? lastShelf.y + lastShelf.height : 0
+  const lastBoardWaste = availableHeight > 0 ? (availableHeight - usedHeight) / availableHeight : 0
+  return boards.length + lastBoardWaste * 0.1
+}
+
+export function buildBoardPages(
+  items: InputItem[],
+  glyphMap: GlyphMap,
+  renderSettings: TextRenderSettings,
+  boardSettings: BoardSettings,
+): BoardPage[] {
+  const rendered = items
+    .map((item) => renderWord(item, glyphMap, renderSettings))
+    .filter((item): item is RenderedWord => Boolean(item))
+    .map((item) => ({
+      ...item,
+      packedWidth: item.widthMm,
+      packedHeight: item.heightMm,
+    }))
+
+  const availableWidth = boardSettings.widthMm - boardSettings.marginMm * 2
+  const availableHeight = boardSettings.heightMm - boardSettings.marginMm * 2
+
+  if (availableWidth <= 0 || availableHeight <= 0) {
+    return []
+  }
+
+  const strategies: Array<(a: RenderCandidate, b: RenderCandidate) => number> = [
+    // 1. Height-first FFD (original)
+    (a, b) => {
+      const byHeight = b.packedHeight - a.packedHeight
+      if (byHeight !== 0) return byHeight
+      const byWidth = b.packedWidth - a.packedWidth
+      if (byWidth !== 0) return byWidth
+      return b.packedWidth * b.packedHeight - a.packedWidth * a.packedHeight
+    },
+    // 2. Area-first
+    (a, b) => b.packedWidth * b.packedHeight - a.packedWidth * a.packedHeight,
+    // 3. Width-first
+    (a, b) => {
+      const byWidth = b.packedWidth - a.packedWidth
+      if (byWidth !== 0) return byWidth
+      return b.packedHeight - a.packedHeight
+    },
+    // 4. Height-first, narrow-first tie-break (tall+narrow items first)
+    (a, b) => {
+      const byHeight = b.packedHeight - a.packedHeight
+      if (byHeight !== 0) return byHeight
+      return a.packedWidth - b.packedWidth
+    },
+  ]
+
+  const results = strategies.map((fn) =>
+    packWithOrder([...rendered].sort(fn), boardSettings, availableWidth, availableHeight),
+  )
+
+  const boards = results.reduce((best, curr) =>
+    scoreBoards(curr, availableHeight) < scoreBoards(best, availableHeight) ? curr : best,
+  )
 
   return boards.map((board) => ({
     index: board.index,

@@ -1,32 +1,52 @@
 :root {
-  font-family:
-    'IBM Plex Sans', 'Segoe UI', sans-serif;
+  font-family: 'IBM Plex Sans', 'Avenir Next', 'Segoe UI', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #5d5348;
   background:
-    radial-gradient(circle at top, rgba(214, 188, 156, 0.25), transparent 38%),
-    linear-gradient(180deg, #f5efe8, #efe5d7 68%, #e8dccb);
+    radial-gradient(circle at 18% 0%, rgba(200, 148, 72, 0.26), transparent 38%),
+    radial-gradient(circle at 86% 8%, rgba(110, 68, 24, 0.16), transparent 28%),
+    radial-gradient(circle, rgba(120, 88, 48, 0.14) 1px, transparent 1px),
+    linear-gradient(175deg, #f0e7d6 0%, #e5d5bc 48%, #d9c9aa 100%);
+  background-size: auto, auto, 26px 26px, auto;
+  background-attachment: fixed;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --panel: rgba(252, 248, 242, 0.92);
-  --surface: rgba(255, 255, 255, 0.82);
-  --border: rgba(123, 89, 60, 0.18);
-  --heading: #251b14;
-  --muted: #746759;
-  --accent: #ba6c26;
-  --accent-rgb: 186, 108, 38;
-  --transition-base: 160ms ease;
-  --pill-radius: 999px;
+  --page-max-width: 1440px;
+  --panel: rgba(248, 241, 228, 0.88);
+  --panel-strong: rgba(250, 244, 233, 0.97);
+  --surface: rgba(255, 250, 242, 0.86);
+  --surface-strong: rgba(255, 252, 246, 0.98);
+  --surface-muted: rgba(243, 234, 223, 0.74);
+  --canvas: rgba(244, 235, 220, 0.88);
+  --border: rgba(108, 81, 56, 0.22);
+  --border-strong: rgba(108, 81, 56, 0.36);
+  --heading: #1c1108;
+  --body: #524840;
+  --muted: #7a6b5c;
+  --accent: #b25516;
+  --accent-rgb: 178, 85, 22;
+  --accent-soft: rgba(178, 85, 22, 0.1);
+  --success-bg: rgba(97, 134, 96, 0.11);
+  --success-border: rgba(97, 134, 96, 0.22);
+  --error-bg: rgba(181, 57, 71, 0.1);
+  --error-border: rgba(181, 57, 71, 0.22);
+  --shadow-sm:
+    0 8px 22px rgba(80, 52, 18, 0.10),
+    0 2px 8px rgba(80, 52, 18, 0.05);
   --shadow:
-    0 20px 50px rgba(78, 55, 26, 0.12),
-    0 4px 18px rgba(78, 55, 26, 0.06);
-  --success-bg: rgba(186, 108, 38, 0.09);
-  --success-border: rgba(186, 108, 38, 0.26);
-  --error-bg: rgba(181, 57, 71, 0.09);
-  --error-border: rgba(181, 57, 71, 0.28);
+    0 20px 52px rgba(62, 38, 10, 0.15),
+    0 6px 18px rgba(62, 38, 10, 0.08);
+  --shadow-lg:
+    0 32px 80px rgba(54, 32, 6, 0.20),
+    0 10px 28px rgba(54, 32, 6, 0.10);
+  --radius-panel: 32px;
+  --radius-card: 24px;
+  --radius-control: 18px;
+  --radius-pill: 999px;
+  --transition-base: 180ms ease;
 }
 
 * {
@@ -40,6 +60,7 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  color: var(--body);
 }
 
 button,
@@ -54,17 +75,23 @@ h2,
 h3 {
   margin: 0;
   color: var(--heading);
-  line-height: 1.08;
+  line-height: 1.04;
 }
 
 h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(2.4rem, 3vw, 4.8rem);
-  letter-spacing: -0.05em;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
+  font-size: clamp(2.9rem, 5vw, 5.3rem);
+  letter-spacing: -0.06em;
+  max-width: 12ch;
 }
 
 h2 {
-  font-size: 1.15rem;
+  font-size: clamp(1.2rem, 1.25rem + 0.2vw, 1.5rem);
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  font-size: 1rem;
 }
 
 p {
@@ -82,8 +109,9 @@ a {
 @keyframes fadeSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -92,8 +120,8 @@ a {
 
 @media (max-width: 720px) {
   h1 {
-    font-size: clamp(1.85rem, 8.2vw, 2.35rem);
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    font-size: clamp(2.2rem, 10vw, 3rem);
+    letter-spacing: -0.04em;
+    line-height: 1.08;
   }
 }

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import './styles/app-shell.css'
-import './styles/project-workflow.css'
-import './styles/configurator.css'
 import { AppHero } from './components/AppHero'
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher'
+import { AppShell } from './components/app-shell/AppShell'
 import { triggerProjectDownload, triggerSvgDownload, triggerZipDownload } from './lib/export'
 import { createGlyphMap } from './lib/glyphs'
 import { getAppStrings, resolveBrowserLanguage, type AppLanguage } from './lib/i18n'
@@ -40,10 +38,6 @@ function App() {
   const canConfigure = Boolean(projectState.glyphMap)
   const projectStats = {
     entries: configuratorState.inputItems.length,
-    pages: configuratorState.pages.length,
-    glyphs: projectState.project?.glyphs.length ?? 0,
-    accents:
-      projectState.project?.glyphs.reduce((sum, glyph) => sum + glyph.accentParts.length, 0) ?? 0,
   }
 
   const handleWorkspaceChange = (nextStep: WorkspaceStep) => {
@@ -143,23 +137,25 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
-      <AppHero
-        accents={projectStats.accents}
-        glyphs={projectStats.glyphs}
-        language={language}
-        onLanguageChange={setLanguage}
-        pages={projectStats.pages}
-        strings={strings}
-      />
+    <AppShell
+      topbar={
+        <>
+          <AppHero
+            language={language}
+            onLanguageChange={setLanguage}
+            strings={strings}
+          />
 
-      <WorkspaceSwitcher
-        canPrepare={canPrepare}
-        canConfigure={canConfigure}
-        onChange={handleWorkspaceChange}
-        strings={strings}
-        workspaceStep={workspaceStep}
-      />
+          <WorkspaceSwitcher
+            canPrepare={canPrepare}
+            canConfigure={canConfigure}
+            onChange={handleWorkspaceChange}
+            strings={strings}
+            workspaceStep={workspaceStep}
+          />
+        </>
+      }
+    >
 
       {workspaceStep === 'project' ? (
         <ProjectInputsPanel
@@ -246,7 +242,7 @@ function App() {
           updateRenderSetting={configuratorState.updateRenderSetting}
         />
       ) : null}
-    </main>
+    </AppShell>
   )
 }
 

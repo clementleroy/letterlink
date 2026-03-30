@@ -1,0 +1,112 @@
+.stage {
+  min-height: 440px;
+  border-radius: 24px;
+  padding: 16px;
+  border: 1px solid rgba(114, 85, 56, 0.16);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  position: relative;
+  background:
+    radial-gradient(circle at top, rgba(var(--accent-rgb), 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(244, 235, 224, 0.94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.54);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.background {
+  fill: #fffdf9;
+  stroke: rgba(77, 60, 43, 0.12);
+  stroke-width: 1.2;
+}
+
+.path {
+  transition:
+    fill var(--transition-base),
+    opacity var(--transition-base);
+}
+
+.base {
+  fill: rgba(29, 20, 14, 0.96);
+}
+
+.bridge {
+  fill: rgba(var(--accent-rgb), 0.24);
+}
+
+.accent {
+  fill: rgba(85, 63, 42, 0.82);
+  cursor: grab;
+}
+
+.accent:hover {
+  fill: rgba(105, 79, 52, 0.94);
+}
+
+.selected {
+  fill: rgba(var(--accent-rgb), 0.94);
+}
+
+.anchor {
+  cursor: grab;
+  touch-action: none;
+}
+
+.anchor circle {
+  fill: #c14e5f;
+  stroke: #fffdf8;
+  stroke-width: 0.8;
+  pointer-events: all;
+}
+
+.anchor text {
+  fill: #36261b;
+  font-size: 7px;
+  font-weight: 600;
+  stroke: rgba(255, 253, 248, 0.96);
+  stroke-width: 1.4;
+  paint-order: stroke fill;
+  stroke-linejoin: round;
+  pointer-events: all;
+}
+
+.anchorRight circle,
+.anchorActive circle {
+  fill: #0f766e;
+}
+
+.emptyState {
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  place-items: center;
+  max-width: 38ch;
+}
+
+.emptyState h3 {
+  font-size: 1rem;
+  color: var(--heading);
+}
+
+.emptyState p {
+  font-size: 0.94rem;
+  color: var(--muted);
+  opacity: 0.88;
+  line-height: 1.65;
+}
+
+@media (max-width: 720px) {
+  .stage {
+    min-height: 320px;
+    padding: 12px;
+    border-radius: 22px;
+  }
+}

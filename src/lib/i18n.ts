@@ -79,7 +79,6 @@ export type AppStrings = {
     boardWidth: string
     boardHeight: string
     margin: string
-    itemPadding: string
     horizontalGap: string
     verticalGap: string
     outputSettingsTitle: string
@@ -239,9 +238,8 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       boardWidth: 'Board width (mm)',
       boardHeight: 'Board height (mm)',
       margin: 'Margin (mm)',
-      itemPadding: 'Item padding (mm)',
-      horizontalGap: 'Horizontal gap (mm)',
-      verticalGap: 'Vertical gap (mm)',
+      horizontalGap: 'Horizontal spacing (mm)',
+      verticalGap: 'Vertical spacing (mm)',
       outputSettingsTitle: 'Output settings',
       letterHeight: 'Letter height (mm)',
       letterSpacing: 'Letter spacing (mm)',
@@ -366,7 +364,6 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       boardWidth: 'Largeur de la planche (mm)',
       boardHeight: 'Hauteur de la planche (mm)',
       margin: 'Marge (mm)',
-      itemPadding: 'Marge interne (mm)',
       horizontalGap: 'Espacement horizontal (mm)',
       verticalGap: 'Espacement vertical (mm)',
       outputSettingsTitle: 'Réglages de sortie',

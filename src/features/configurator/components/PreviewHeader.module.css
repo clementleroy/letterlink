@@ -1,0 +1,17 @@
+.sectionHead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.sectionHead > div {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.copy {
+  color: var(--muted);
+  line-height: 1.65;
+}

@@ -1,0 +1,48 @@
+.frame {
+  position: relative;
+  max-width: 100%;
+}
+
+.svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  color: #1f1812;
+}
+
+.background {
+  fill: #fffdf8;
+}
+
+.margin {
+  fill: none;
+  stroke: rgba(108, 81, 56, 0.18);
+  stroke-width: 0.3;
+  stroke-dasharray: 2 2;
+}
+
+.hitArea {
+  fill: transparent;
+  cursor: default;
+  transition: fill 120ms ease;
+}
+
+.itemGroup:hover .hitArea {
+  fill: rgba(178, 85, 22, 0.07);
+}
+
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -200%);
+  background: #1c1108;
+  color: #fff9f2;
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0.88;
+}
+

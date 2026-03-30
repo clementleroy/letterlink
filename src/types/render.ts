@@ -17,7 +17,6 @@ export type BoardSettings = {
   widthMm: number
   heightMm: number
   marginMm: number
-  itemPaddingMm: number
   horizontalGapMm: number
   verticalGapMm: number
 }

@@ -1,0 +1,36 @@
+.section {
+  display: grid;
+  gap: 14px;
+}
+
+.sectionHead {
+  margin-bottom: -4px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chips button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(251, 246, 240, 0.5)),
+    var(--surface);
+  border: 1px solid rgba(114, 85, 56, 0.14);
+  color: var(--heading);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.active {
+  border-color: rgba(var(--accent-rgb), 0.24) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(251, 240, 229, 0.68)),
+    var(--surface-strong) !important;
+  box-shadow: var(--shadow-sm);
+}

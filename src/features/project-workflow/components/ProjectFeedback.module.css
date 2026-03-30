@@ -1,0 +1,18 @@
+.message {
+  padding: 12px 14px;
+  border-radius: 18px;
+  font-size: 0.94rem;
+  animation: fadeSlideIn 220ms ease;
+}
+
+.info {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--heading);
+}
+
+.error {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: #8b1f2b;
+}

@@ -1,0 +1,66 @@
+.sectionHead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.sectionHead > div {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.panelCopy {
+  max-width: 56ch;
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 0.98rem;
+}
+
+.readyBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(249, 241, 232, 0.54)),
+    var(--surface);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  color: var(--body);
+  flex-wrap: wrap;
+}
+
+.bannerCta {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 2px 0;
+  transition: opacity var(--transition-base);
+}
+
+.bannerCta:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+.bannerCta:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (max-width: 720px) {
+  .sectionHead {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}

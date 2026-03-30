@@ -1,0 +1,31 @@
+.rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 30%),
+    var(--panel-strong);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.connector {
+  width: 44px;
+  align-self: center;
+  height: 2px;
+  background: none;
+  border-top: 2px dashed rgba(108, 81, 56, 0.32);
+}
+
+@media (max-width: 1100px) {
+  .rail {
+    grid-template-columns: 1fr;
+  }
+
+  .connector {
+    display: none;
+  }
+}

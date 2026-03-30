@@ -1,0 +1,42 @@
+.card {
+  padding: 18px 20px;
+  border-radius: var(--radius-card);
+  border: 1px solid rgba(114, 85, 56, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 239, 230, 0.64)),
+    var(--surface-muted);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  gap: 10px;
+}
+
+.card p {
+  margin: 0;
+}
+
+.buttonRow {
+  display: flex;
+}
+
+.buttonRow button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(252, 247, 242, 0.45)),
+    var(--surface);
+  border: 1px solid var(--border);
+  color: var(--heading);
+  border-radius: var(--radius-pill);
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-height: 42px;
+}
+
+@media (max-width: 720px) {
+  .buttonRow button {
+    width: 100%;
+  }
+}

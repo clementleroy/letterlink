@@ -1,5 +1,10 @@
 import type { ChangeEvent } from 'react'
 import type { AppStrings, LetterlinkProject } from '../../types'
+import panelStyles from './components/ProjectInputsPanel.module.css'
+import { ImportOptionCard } from './components/ImportOptionCard'
+import { ProjectFeedback } from './components/ProjectFeedback'
+import { ProjectIntroCard } from './components/ProjectIntroCard'
+import { ProjectReadyCard } from './components/ProjectReadyCard'
 
 type ProjectInputsPanelProps = {
   canConfigure: boolean
@@ -27,60 +32,55 @@ export function ProjectInputsPanel({
   onOpenConfigurator,
 }: ProjectInputsPanelProps) {
   return (
-    <aside className="panel sidebar-panel">
-      <div className="section-head">
-        <h2>{strings.prepare.projectTitle}</h2>
+    <aside className={panelStyles.panel}>
+      <div className={panelStyles.sectionHead}>
+        <div>
+          <h2>{strings.prepare.projectTitle}</h2>
+          <p className={panelStyles.panelCopy}>{strings.prepare.projectCopy}</p>
+        </div>
       </div>
+
+      <ProjectIntroCard
+        acceptedInputsLabel={strings.prepare.acceptedInputsLabel}
+        acceptedInputsValue={strings.prepare.acceptedInputsValue}
+      />
 
       {project ? (
-        <div className="project-ready-card">
-          <div className="project-ready-info">
-            <span className="ready-badge">{strings.prepare.projectReady}</span>
-            <strong className="project-font-name">{project.source.fontFamily}</strong>
-          </div>
-          <button
-            className="btn-primary"
-            disabled={!canConfigure}
-            onClick={onOpenConfigurator}
-            type="button"
-          >
-            {strings.prepare.fontReadyCta}
-          </button>
-        </div>
+        <ProjectReadyCard
+          canConfigure={canConfigure}
+          currentFontLabel={strings.prepare.currentFontLabel}
+          ctaLabel={strings.prepare.fontReadyCta}
+          fontFamily={project.source.fontFamily}
+          onOpenConfigurator={onOpenConfigurator}
+          readyLabel={strings.prepare.projectReady}
+        />
       ) : null}
 
-      <div className="import-options">
-        <label className="field">
-          <span>{strings.prepare.importFont}</span>
-          <input accept=".ttf,.otf,font/ttf,font/otf" onChange={onFontUpload} type="file" />
-        </label>
-
-        <label className="field">
-          <span>{strings.prepare.openSavedProject}</span>
-          <input
-            accept=".json,.letterlink.json,application/json"
-            onChange={onProjectUpload}
-            type="file"
-          />
-        </label>
+      <div className={panelStyles.importOptions}>
+        <ImportOptionCard
+          accept=".ttf,.otf,font/ttf,font/otf"
+          label={strings.prepare.importFont}
+          onChange={onFontUpload}
+        />
+        <ImportOptionCard
+          accept=".json,.letterlink.json,application/json"
+          label={strings.prepare.openSavedProject}
+          onChange={onProjectUpload}
+        />
       </div>
 
-      {projectMessage ? (
-        <div className="message-block is-info" key={projectMessage}>
-          {projectMessage}
-        </div>
-      ) : null}
-      {projectError ? (
-        <div className="message-block is-error" key={projectError}>
-          {projectError}
-        </div>
-      ) : null}
+      {projectMessage ? <ProjectFeedback tone="info">{projectMessage}</ProjectFeedback> : null}
+      {projectError ? <ProjectFeedback tone="error">{projectError}</ProjectFeedback> : null}
 
-      <div className="project-secondary-actions">
-        <button className="btn-ghost" onClick={onDownloadProject} type="button">
+      <div className={panelStyles.actions}>
+        <button className={panelStyles.ghostButton} onClick={onDownloadProject} type="button">
           {strings.prepare.saveProjectFile}
         </button>
-        <button className="btn-ghost btn-ghost-danger" onClick={onClearProject} type="button">
+        <button
+          className={`${panelStyles.ghostButton} ${panelStyles.dangerButton}`}
+          onClick={onClearProject}
+          type="button"
+        >
           {strings.prepare.clearProject}
         </button>
       </div>

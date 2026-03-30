@@ -1,0 +1,121 @@
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top left, rgba(81, 130, 89, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(243, 249, 241, 0.86), rgba(236, 246, 237, 0.74));
+  border: 1px solid rgba(81, 130, 89, 0.18);
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.text {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4d7052;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(81, 130, 89, 0.14);
+  color: #35563a;
+  border: 1px solid rgba(81, 130, 89, 0.22);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '✓';
+}
+
+.fontName {
+  font-size: 1rem;
+  color: var(--heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(170deg, #c96c28 0%, #9c4812 100%);
+  color: #fff9f2;
+  border: 1px solid rgba(117, 65, 21, 0.28);
+  border-radius: var(--radius-pill);
+  padding: 12px 20px;
+  font: inherit;
+  font-size: 0.94rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 218, 160, 0.28),
+    0 10px 24px rgba(110, 52, 8, 0.30);
+  transition:
+    opacity var(--transition-base),
+    transform var(--transition-base),
+    box-shadow var(--transition-base),
+    background var(--transition-base);
+  min-height: 46px;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: linear-gradient(170deg, #d5742e 0%, #a84f16 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 218, 160, 0.32),
+    0 14px 32px rgba(110, 52, 8, 0.38);
+  transform: translateY(-2px);
+}
+
+.primaryButton:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), 0.35);
+  outline-offset: 2px;
+}
+
+.primaryButton:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (max-width: 720px) {
+  .card,
+  .info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fontName {
+    white-space: normal;
+  }
+
+  .primaryButton {
+    width: 100%;
+  }
+}

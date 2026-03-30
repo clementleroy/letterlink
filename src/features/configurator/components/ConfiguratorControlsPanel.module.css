@@ -1,0 +1,39 @@
+.panel {
+  position: sticky;
+  top: 20px;
+  padding: 28px;
+  display: grid;
+  gap: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 28%),
+    var(--panel-strong);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.statusMessage {
+  padding: 12px 14px;
+  border-radius: 18px;
+  font-size: 0.92rem;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--heading);
+  margin: 0;
+  animation: fadeSlideIn 220ms ease;
+}
+
+@media (max-width: 1100px) {
+  .panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .panel {
+    padding: 18px;
+    border-radius: 24px;
+    gap: 16px;
+  }
+}
