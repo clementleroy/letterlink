@@ -12,10 +12,11 @@ import { loadStoredLanguage, saveStoredLanguage } from './lib/project-store'
 import { useConfiguratorState } from './hooks/useConfiguratorState'
 import { useGlyphEditorState } from './hooks/useGlyphEditorState'
 import { useLetterlinkProject } from './hooks/useLetterlinkProject'
+import { ProjectInputsPanel } from './features/project-workflow/ProjectInputsPanel'
 import { PrepareWorkspace } from './features/project-workflow/PrepareWorkspace'
 import { ConfiguratorWorkspace } from './features/configurator/ConfiguratorWorkspace'
 
-type WorkspaceStep = 'prepare' | 'configure'
+type WorkspaceStep = 'project' | 'prepare' | 'configure'
 
 function App() {
   const [language, setLanguage] = useState<AppLanguage>(
@@ -29,14 +30,13 @@ function App() {
   )
   const configuratorState = useConfiguratorState(configuredGlyphMap, language)
   const glyphEditorState = useGlyphEditorState(projectState.project, projectState.glyphMap)
-  const [workspaceStep, setWorkspaceStep] = useState<WorkspaceStep>(
-    projectState.project ? 'configure' : 'prepare',
-  )
+  const [workspaceStep, setWorkspaceStep] = useState<WorkspaceStep>('project')
 
   useEffect(() => {
     saveStoredLanguage(language)
   }, [language])
 
+  const canPrepare = Boolean(projectState.project)
   const canConfigure = Boolean(projectState.glyphMap)
   const projectStats = {
     entries: configuratorState.inputItems.length,
@@ -47,7 +47,15 @@ function App() {
   }
 
   const handleWorkspaceChange = (nextStep: WorkspaceStep) => {
+    if (nextStep === 'prepare' && !canPrepare) {
+      return
+    }
+
     if (nextStep === 'configure') {
+      if (!canConfigure) {
+        return
+      }
+
       projectState.refreshProjectSnapshot()
     }
 
@@ -63,7 +71,7 @@ function App() {
 
     await projectState.importFontFile(file)
     glyphEditorState.ensureSelectedGlyph()
-    setWorkspaceStep('prepare')
+    setWorkspaceStep('project')
     event.target.value = ''
   }
 
@@ -77,7 +85,7 @@ function App() {
     const text = await file.text()
     projectState.importProjectText(text, file.name)
     glyphEditorState.ensureSelectedGlyph()
-    setWorkspaceStep('configure')
+    setWorkspaceStep('project')
     event.target.value = ''
   }
 
@@ -146,25 +154,37 @@ function App() {
       />
 
       <WorkspaceSwitcher
+        canPrepare={canPrepare}
         canConfigure={canConfigure}
         onChange={handleWorkspaceChange}
         strings={strings}
         workspaceStep={workspaceStep}
       />
 
+      {workspaceStep === 'project' ? (
+        <ProjectInputsPanel
+          canConfigure={canPrepare}
+          project={projectState.project}
+          projectError={projectState.projectError}
+          projectMessage={projectState.projectMessage}
+          strings={strings}
+          onFontUpload={handleFontUpload}
+          onProjectUpload={handleProjectUpload}
+          onDownloadProject={handleDownloadProject}
+          onClearProject={projectState.clearProject}
+          onOpenConfigurator={() => handleWorkspaceChange('prepare')}
+        />
+      ) : null}
+
       {workspaceStep === 'prepare' ? (
         <PrepareWorkspace
           activeAnchorSide={glyphEditorState.activeAnchorSide}
           availableGlyphChars={glyphEditorState.availableGlyphChars}
-          canConfigure={canConfigure}
           canSelectNextGlyph={glyphEditorState.canSelectNextGlyph}
           canSelectPreviousGlyph={glyphEditorState.canSelectPreviousGlyph}
           glyphEditorAnchors={glyphEditorState.glyphEditorAnchors}
           glyphEditorLayers={glyphEditorState.glyphEditorLayers}
           glyphEditorLayout={glyphEditorState.glyphEditorLayout}
-          project={projectState.project}
-          projectError={projectState.projectError}
-          projectMessage={projectState.projectMessage}
           strings={strings}
           safeSelectedAccentId={glyphEditorState.safeSelectedAccentId}
           safeSelectedGlyphChar={glyphEditorState.safeSelectedGlyphChar}
@@ -173,9 +193,6 @@ function App() {
           selectedGlyphData={glyphEditorState.selectedGlyphData}
           onAccentPointerDown={glyphEditorState.onAccentPointerDown}
           onAnchorPointerDown={glyphEditorState.onAnchorPointerDown}
-          onClearProject={projectState.clearProject}
-          onDownloadProject={handleDownloadProject}
-          onFontUpload={handleFontUpload}
           onGlyphCanvasClick={(event) =>
             glyphEditorState.onGlyphCanvasClick(event, projectState.updateGlyph)
           }
@@ -186,7 +203,6 @@ function App() {
             glyphEditorState.nudgeSelectedAccent(deltaX, deltaY, projectState.updateGlyph)
           }
           onOpenConfigurator={() => handleWorkspaceChange('configure')}
-          onProjectUpload={handleProjectUpload}
           onResetSelectedAccent={() =>
             glyphEditorState.resetSelectedAccent(projectState.updateGlyph)
           }
@@ -200,7 +216,9 @@ function App() {
           onSetSelectedGlyphChar={glyphEditorState.setSelectedGlyphChar}
           onStopAccentDrag={glyphEditorState.stopAccentDrag}
         />
-      ) : (
+      ) : null}
+
+      {workspaceStep === 'configure' ? (
         <ConfiguratorWorkspace
           boardSettings={configuratorState.boardSettings}
           csvColumns={configuratorState.csvColumns}
@@ -227,7 +245,7 @@ function App() {
           updateBoardSetting={configuratorState.updateBoardSetting}
           updateRenderSetting={configuratorState.updateRenderSetting}
         />
-      )}
+      ) : null}
     </main>
   )
 }

@@ -15,10 +15,12 @@ export type AppStrings = {
     previewBoards: string
   }
   workspace: {
+    project: string
     prepare: string
     configure: string
     step1Sub: string
     step2Sub: string
+    step3Sub: string
   }
   prepare: {
     projectTitle: string
@@ -172,10 +174,12 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       previewBoards: 'boards',
     },
     workspace: {
-      prepare: '1. Set up letters',
-      configure: '2. Build boards',
-      step1Sub: 'Font & letter connections',
-      step2Sub: 'Names, size & export',
+      project: '1. Project setup',
+      prepare: '2. Set up letters',
+      configure: '3. Build boards',
+      step1Sub: 'Import, save & reset',
+      step2Sub: 'Font & letter connections',
+      step3Sub: 'Names, size & export',
     },
     prepare: {
       projectTitle: 'Project setup',
@@ -219,8 +223,8 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       baseLetterform: 'Base letterform',
       accentPieceType: 'Accent piece',
       mainShape: 'Main shape',
-      fontReadyBanner: 'Your font is ready. Adjust letter connections here if needed, or skip to Step 2.',
-      fontReadyCta: 'Go to Step 2 →',
+      fontReadyBanner: 'Your font is ready. Adjust letter connections here if needed, or skip to Step 3.',
+      fontReadyCta: 'Go to Step 3 →',
       projectReady: 'Ready',
       changeFont: 'Change font',
     },
@@ -297,10 +301,12 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       previewBoards: 'planches',
     },
     workspace: {
-      prepare: '1. Configurer les lettres',
-      configure: '2. Créer les planches',
-      step1Sub: 'Police & liaisons',
-      step2Sub: 'Prénoms, taille & export',
+      project: '1. Configuration du projet',
+      prepare: '2. Configurer les lettres',
+      configure: '3. Créer les planches',
+      step1Sub: 'Import, sauvegarde & remise à zero',
+      step2Sub: 'Police & liaisons',
+      step3Sub: 'Prénoms, taille & export',
     },
     prepare: {
       projectTitle: 'Configuration du projet',
@@ -344,8 +350,8 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       baseLetterform: 'Forme de base',
       accentPieceType: "Élément d'accent",
       mainShape: 'Forme principale',
-      fontReadyBanner: 'Votre police est prête. Ajustez les liaisons ci-dessous si nécessaire, ou passez à l\'étape 2.',
-      fontReadyCta: 'Passer à l\'étape 2 →',
+      fontReadyBanner: 'Votre police est prête. Ajustez les liaisons ci-dessous si nécessaire, ou passez à l\'étape 3.',
+      fontReadyCta: 'Passer à l\'étape 3 →',
       projectReady: 'Prête',
       changeFont: 'Changer de police',
     },

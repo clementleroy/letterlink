@@ -103,6 +103,10 @@
   align-items: start;
 }
 
+.prepare-layout-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sidebar-panel,
 .editor-panel {
   display: grid;
