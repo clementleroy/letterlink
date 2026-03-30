@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="letterlinkIconTitle">
+  <title id="letterlinkIconTitle">Letterlink icon</title>
+  <defs>
+    <linearGradient id="bg" x1="32" x2="224" y1="24" y2="232" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fcf5ea" />
+      <stop offset="1" stop-color="#e4c49f" />
+    </linearGradient>
+    <linearGradient id="stroke" x1="70" x2="188" y1="60" y2="194" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8c4c17" />
+      <stop offset="1" stop-color="#c7772d" />
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="256" height="256" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#8f6539" flood-opacity=".18" />
+    </filter>
+  </defs>
+
+  <rect width="256" height="256" rx="64" fill="#f3e2cb" />
+  <g filter="url(#shadow)">
+    <rect x="24" y="24" width="208" height="208" rx="52" fill="url(#bg)" />
+    <rect x="24" y="24" width="208" height="208" rx="52" fill="none" stroke="#f8efe1" stroke-width="4" />
+  </g>
+
+  <path
+    d="M100 64v70c0 12 10 22 22 22h38"
+    fill="none"
+    stroke="url(#stroke)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="24"
+  />
+  <path
+    d="M156 192v-70c0-12-10-22-22-22H96"
+    fill="none"
+    stroke="url(#stroke)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="24"
+  />
+
+  <circle cx="128" cy="128" r="18" fill="#fcf5ea" stroke="#d79a5d" stroke-width="10" />
+  <circle cx="176" cy="80" r="10" fill="#d97f35" />
+</svg>
