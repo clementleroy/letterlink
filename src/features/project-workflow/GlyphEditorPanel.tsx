@@ -22,9 +22,9 @@ type GlyphEditorPanelProps = {
   selectedAccent: LetterlinkGlyph['accentParts'][number] | null
   selectedGlyph: LetterlinkGlyph | null
   selectedGlyphData: ProjectGlyphData | null
-  onAccentMouseDown: (event: MouseEvent<SVGPathElement>, accentId: string) => void
+  onAccentPointerDown: (event: PointerEvent<SVGPathElement>, accentId: string) => void
   onGlyphCanvasClick: (event: MouseEvent<SVGSVGElement>) => void
-  onGlyphCanvasMouseMove: (event: MouseEvent<SVGSVGElement>) => void
+  onGlyphCanvasPointerMove: (event: PointerEvent<SVGSVGElement>) => void
   onNudgeSelectedAccent: (deltaX: number, deltaY: number) => void
   onOpenConfigurator: () => void
   onResetSelectedAccent: () => void
@@ -33,7 +33,7 @@ type GlyphEditorPanelProps = {
   onSetSelectedGlyphChar: (value: string) => void
   onSelectNextGlyph: () => void
   onSelectPreviousGlyph: () => void
-  onAnchorMouseDown: (event: MouseEvent<SVGGElement>, side: 'left' | 'right') => void
+  onAnchorPointerDown: (event: PointerEvent<SVGGElement>, side: 'left' | 'right') => void
   onStopAccentDrag: () => void
 }
 
@@ -51,9 +51,9 @@ export function GlyphEditorPanel({
   selectedAccent,
   selectedGlyph,
   selectedGlyphData,
-  onAccentMouseDown,
+  onAccentPointerDown,
   onGlyphCanvasClick,
-  onGlyphCanvasMouseMove,
+  onGlyphCanvasPointerMove,
   onNudgeSelectedAccent,
   onOpenConfigurator,
   onResetSelectedAccent,
@@ -62,7 +62,7 @@ export function GlyphEditorPanel({
   onSetSelectedGlyphChar,
   onSelectNextGlyph,
   onSelectPreviousGlyph,
-  onAnchorMouseDown,
+  onAnchorPointerDown,
   onStopAccentDrag,
 }: GlyphEditorPanelProps) {
   const canEditAccents = Boolean(selectedGlyph?.accentParts.length)
@@ -276,9 +276,10 @@ export function GlyphEditorPanel({
                 onNudgeSelectedAccent(delta[0], delta[1])
               }
             }}
-            onMouseLeave={onStopAccentDrag}
-            onMouseMove={onGlyphCanvasMouseMove}
-            onMouseUp={onStopAccentDrag}
+            onPointerCancel={onStopAccentDrag}
+            onPointerLeave={onStopAccentDrag}
+            onPointerMove={onGlyphCanvasPointerMove}
+            onPointerUp={onStopAccentDrag}
             tabIndex={0}
             viewBox={`0 0 ${glyphEditorLayout.width} ${glyphEditorLayout.height}`}
           >
@@ -302,9 +303,9 @@ export function GlyphEditorPanel({
                         : 'is-base'
                   } ${safeSelectedAccentId === layer.id ? 'is-selected' : ''}`}
                   d={layer.pathData}
-                  onMouseDown={
+                  onPointerDown={
                     layer.kind === 'accent'
-                      ? (event) => onAccentMouseDown(event, layer.id)
+                      ? (event) => onAccentPointerDown(event, layer.id)
                       : undefined
                   }
                 />
@@ -314,7 +315,7 @@ export function GlyphEditorPanel({
                   <g
                     className={`editor-anchor ${activeAnchorSide === 'left' ? 'is-active' : ''}`}
                     onClick={(event) => event.stopPropagation()}
-                    onMouseDown={(event) => onAnchorMouseDown(event, 'left')}
+                    onPointerDown={(event) => onAnchorPointerDown(event, 'left')}
                     transform={`translate(${glyphEditorAnchors.left.x} ${glyphEditorAnchors.left.y})`}
                   >
                     <circle r={activeAnchorSide === 'left' ? 3.6 : 2.6} />
@@ -327,7 +328,7 @@ export function GlyphEditorPanel({
                       activeAnchorSide === 'right' ? 'is-active' : ''
                     }`}
                     onClick={(event) => event.stopPropagation()}
-                    onMouseDown={(event) => onAnchorMouseDown(event, 'right')}
+                    onPointerDown={(event) => onAnchorPointerDown(event, 'right')}
                     transform={`translate(${glyphEditorAnchors.right.x} ${glyphEditorAnchors.right.y})`}
                   >
                     <circle r={activeAnchorSide === 'right' ? 3.6 : 2.6} />

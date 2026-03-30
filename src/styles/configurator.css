@@ -304,6 +304,18 @@
 }
 
 @media (max-width: 720px) {
+  .workspace,
+  .preview-stack,
+  .controls-panel,
+  .preview-panel {
+    gap: 16px;
+  }
+
+  .board-nav-bar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
   .field-grid {
     grid-template-columns: 1fr;
   }
@@ -312,6 +324,11 @@
     min-height: 340px;
     padding: 14px;
     border-radius: 20px;
+  }
+
+  .board-nav-info {
+    white-space: normal;
+    line-height: 1.35;
   }
 
   .page-tabs {

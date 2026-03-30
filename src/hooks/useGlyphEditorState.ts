@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import type { MouseEvent } from 'react'
+import type { MouseEvent, PointerEvent } from 'react'
 import type { AppFeedback } from '../lib/i18n'
 import {
   clampEditorSelectionToGlyph,
@@ -24,10 +24,12 @@ type DragState =
       startX: number
       startY: number
       accentId: string
+      pointerId: number
     }
   | {
       kind: 'anchor'
       side: AnchorSide
+      pointerId: number
     }
 
 export type UseGlyphEditorStateResult = {
@@ -58,11 +60,11 @@ export type UseGlyphEditorStateResult = {
       message?: AppFeedback,
     ) => void,
   ) => void
-  onAccentMouseDown: (event: MouseEvent<SVGPathElement>, accentId: string) => void
-  onAnchorMouseDown: (event: MouseEvent<SVGGElement>, side: AnchorSide) => void
+  onAccentPointerDown: (event: PointerEvent<SVGPathElement>, accentId: string) => void
+  onAnchorPointerDown: (event: PointerEvent<SVGGElement>, side: AnchorSide) => void
   stopAccentDrag: () => void
-  onGlyphCanvasMouseMove: (
-    event: MouseEvent<SVGSVGElement>,
+  onGlyphCanvasPointerMove: (
+    event: PointerEvent<SVGSVGElement>,
     updateGlyph: (
       glyphChar: string,
       mutateGlyph: (glyph: LetterlinkGlyph) => LetterlinkGlyph,
@@ -227,7 +229,9 @@ export function useGlyphEditorState(
     )
   }
 
-  const getClampedCanvasPoint = (event: MouseEvent<SVGSVGElement>) => {
+  const getClampedCanvasPoint = (
+    event: MouseEvent<SVGSVGElement> | PointerEvent<SVGSVGElement>,
+  ) => {
     if (!selectedGlyphData || !glyphEditorLayout) {
       return null
     }
@@ -314,25 +318,29 @@ export function useGlyphEditorState(
     )
   }
 
-  const onAccentMouseDown = (event: MouseEvent<SVGPathElement>, accentId: string) => {
+  const onAccentPointerDown = (event: PointerEvent<SVGPathElement>, accentId: string) => {
     event.stopPropagation()
     suppressCanvasClickRef.current = true
+    event.currentTarget.setPointerCapture(event.pointerId)
     setSelectedAccentId(accentId)
     setDragState({
       kind: 'accent',
       startX: event.clientX,
       startY: event.clientY,
       accentId,
+      pointerId: event.pointerId,
     })
   }
 
-  const onAnchorMouseDown: UseGlyphEditorStateResult['onAnchorMouseDown'] = (event, side) => {
+  const onAnchorPointerDown: UseGlyphEditorStateResult['onAnchorPointerDown'] = (event, side) => {
     event.stopPropagation()
     suppressCanvasClickRef.current = true
+    event.currentTarget.setPointerCapture(event.pointerId)
     setActiveAnchorSide(side)
     setDragState({
       kind: 'anchor',
       side,
+      pointerId: event.pointerId,
     })
   }
 
@@ -344,11 +352,15 @@ export function useGlyphEditorState(
     setDragState(null)
   }
 
-  const onGlyphCanvasMouseMove: UseGlyphEditorStateResult['onGlyphCanvasMouseMove'] = (
+  const onGlyphCanvasPointerMove: UseGlyphEditorStateResult['onGlyphCanvasPointerMove'] = (
     event,
     updateGlyph,
   ) => {
     if (!selectedGlyph || !selectedGlyphData || !glyphEditorLayout || !dragState) {
+      return
+    }
+
+    if (event.pointerId !== dragState.pointerId) {
       return
     }
 
@@ -388,6 +400,7 @@ export function useGlyphEditorState(
       startX: event.clientX,
       startY: event.clientY,
       accentId: dragState.accentId,
+      pointerId: dragState.pointerId,
     })
   }
 
@@ -431,10 +444,10 @@ export function useGlyphEditorState(
     selectPreviousGlyph,
     ensureSelectedGlyph,
     onGlyphCanvasClick,
-    onAccentMouseDown,
-    onAnchorMouseDown,
+    onAccentPointerDown,
+    onAnchorPointerDown,
     stopAccentDrag,
-    onGlyphCanvasMouseMove,
+    onGlyphCanvasPointerMove,
     resetSelectedAnchor,
     resetSelectedAccent,
     nudgeSelectedAccent,

@@ -1,4 +1,4 @@
-import type { ChangeEvent, MouseEvent } from 'react'
+import type { ChangeEvent, MouseEvent, PointerEvent } from 'react'
 import type {
   GlyphEditorLayer,
   GlyphEditorLayout,
@@ -40,10 +40,10 @@ type PrepareWorkspaceProps = {
   onResetSelectedAnchor: (side: 'left' | 'right') => void
   onResetSelectedAccent: () => void
   onNudgeSelectedAccent: (deltaX: number, deltaY: number) => void
-  onAccentMouseDown: (event: MouseEvent<SVGPathElement>, accentId: string) => void
-  onAnchorMouseDown: (event: MouseEvent<SVGGElement>, side: 'left' | 'right') => void
+  onAccentPointerDown: (event: PointerEvent<SVGPathElement>, accentId: string) => void
+  onAnchorPointerDown: (event: PointerEvent<SVGGElement>, side: 'left' | 'right') => void
   onGlyphCanvasClick: (event: MouseEvent<SVGSVGElement>) => void
-  onGlyphCanvasMouseMove: (event: MouseEvent<SVGSVGElement>) => void
+  onGlyphCanvasPointerMove: (event: PointerEvent<SVGSVGElement>) => void
   onStopAccentDrag: () => void
 }
 
@@ -76,10 +76,10 @@ export function PrepareWorkspace(props: PrepareWorkspaceProps) {
         selectedAccent={props.selectedAccent}
         selectedGlyph={props.selectedGlyph}
         selectedGlyphData={props.selectedGlyphData}
-        onAccentMouseDown={props.onAccentMouseDown}
-        onAnchorMouseDown={props.onAnchorMouseDown}
+        onAccentPointerDown={props.onAccentPointerDown}
+        onAnchorPointerDown={props.onAnchorPointerDown}
         onGlyphCanvasClick={props.onGlyphCanvasClick}
-        onGlyphCanvasMouseMove={props.onGlyphCanvasMouseMove}
+        onGlyphCanvasPointerMove={props.onGlyphCanvasPointerMove}
         onNudgeSelectedAccent={props.onNudgeSelectedAccent}
         onOpenConfigurator={props.onOpenConfigurator}
         onResetSelectedAccent={props.onResetSelectedAccent}

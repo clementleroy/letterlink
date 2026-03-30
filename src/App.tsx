@@ -171,16 +171,16 @@ function App() {
           selectedAccent={glyphEditorState.selectedAccent}
           selectedGlyph={glyphEditorState.selectedGlyph}
           selectedGlyphData={glyphEditorState.selectedGlyphData}
-          onAccentMouseDown={glyphEditorState.onAccentMouseDown}
-          onAnchorMouseDown={glyphEditorState.onAnchorMouseDown}
+          onAccentPointerDown={glyphEditorState.onAccentPointerDown}
+          onAnchorPointerDown={glyphEditorState.onAnchorPointerDown}
           onClearProject={projectState.clearProject}
           onDownloadProject={handleDownloadProject}
           onFontUpload={handleFontUpload}
           onGlyphCanvasClick={(event) =>
             glyphEditorState.onGlyphCanvasClick(event, projectState.updateGlyph)
           }
-          onGlyphCanvasMouseMove={(event) =>
-            glyphEditorState.onGlyphCanvasMouseMove(event, projectState.updateGlyph)
+          onGlyphCanvasPointerMove={(event) =>
+            glyphEditorState.onGlyphCanvasPointerMove(event, projectState.updateGlyph)
           }
           onNudgeSelectedAccent={(deltaX, deltaY) =>
             glyphEditorState.nudgeSelectedAccent(deltaX, deltaY, projectState.updateGlyph)
