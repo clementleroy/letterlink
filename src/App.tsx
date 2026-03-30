@@ -5,8 +5,7 @@ import './styles/project-workflow.css'
 import './styles/configurator.css'
 import { AppHero } from './components/AppHero'
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher'
-import { triggerProjectDownload, triggerZipDownload } from './lib/export'
-import { buildSvgDocument } from './lib/svg'
+import { triggerProjectDownload, triggerSvgDownload, triggerZipDownload } from './lib/export'
 import { createGlyphMap } from './lib/glyphs'
 import { getAppStrings, resolveBrowserLanguage, type AppLanguage } from './lib/i18n'
 import { loadStoredLanguage, saveStoredLanguage } from './lib/project-store'
@@ -106,15 +105,7 @@ function App() {
       return
     }
 
-    const blob = new Blob([buildSvgDocument(configuratorState.currentBoard)], {
-      type: 'image/svg+xml;charset=utf-8',
-    })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `planche-${configuratorState.currentBoard.index + 1}.svg`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    triggerSvgDownload(configuratorState.currentBoard)
     configuratorState.setStatusMessage({
       key: 'config.boardDownloaded',
       boardIndex: configuratorState.currentBoard.index + 1,

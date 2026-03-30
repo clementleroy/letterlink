@@ -1,4 +1,3 @@
-import JSZip from 'jszip'
 import { AppFeedbackError } from './i18n'
 import { buildSvgDocument } from './svg'
 import type { BoardPage, LetterlinkProject, ProjectFileEnvelope } from '../types'
@@ -12,7 +11,16 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url)
 }
 
+export function triggerSvgDownload(page: BoardPage) {
+  const blob = new Blob([buildSvgDocument(page)], {
+    type: 'image/svg+xml;charset=utf-8',
+  })
+
+  downloadBlob(blob, `planche-${page.index + 1}.svg`)
+}
+
 export async function triggerZipDownload(pages: BoardPage[]) {
+  const { default: JSZip } = await import('jszip')
   const zip = new JSZip()
 
   pages.forEach((page) => {

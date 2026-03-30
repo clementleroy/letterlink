@@ -1,6 +1,7 @@
-import opentype from 'opentype.js'
 import type { LetterlinkAccentPart, LetterlinkGlyph, LetterlinkProject } from '../types'
 import { materializeProjectGlyph, splitPathContours, type ProjectGlyphData } from './glyph-geometry'
+
+type OpenTypeFont = import('opentype.js').Font
 
 export type GlyphMap = {
   refSize: number
@@ -29,7 +30,7 @@ function roundMetric(value: number) {
   return Number(value.toFixed(4))
 }
 
-function getFontFamily(font: opentype.Font, fileName: string) {
+function getFontFamily(font: OpenTypeFont, fileName: string) {
   const fullNameRecord = font.names.fullName as Record<string, string> | undefined
   const familyRecord = font.names.fontFamily as Record<string, string> | undefined
 
@@ -80,7 +81,7 @@ function buildAccentParts(contours: ReturnType<typeof splitPathContours>): {
 }
 
 function createProjectGlyph(
-  font: opentype.Font,
+  font: OpenTypeFont,
   char: string,
   baseline: number,
 ): LetterlinkGlyph | null {
@@ -124,6 +125,7 @@ function createProjectGlyph(
 }
 
 export async function createProjectFromFontFile(file: File): Promise<LetterlinkProject> {
+  const { default: opentype } = await import('opentype.js')
   const buffer = await file.arrayBuffer()
   const font = opentype.parse(buffer)
   const baseline = roundMetric(font.ascender * (REF_SIZE / font.unitsPerEm))

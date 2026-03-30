@@ -33,7 +33,17 @@ function cloneProject(project: LetterlinkProject | null): LetterlinkProject | nu
     return null
   }
 
+  if (typeof structuredClone === 'function') {
+    return structuredClone(project)
+  }
+
   return JSON.parse(JSON.stringify(project)) as LetterlinkProject
+}
+
+async function loadDefaultProject(): Promise<LetterlinkProject> {
+  const response = await fetch('/default-project.json')
+  const text = await response.text()
+  return parseProjectFileText(text)
 }
 
 export function useLetterlinkProject(
@@ -64,11 +74,9 @@ export function useLetterlinkProject(
 
     let cancelled = false
 
-    fetch('/default-project.json')
-      .then((res) => res.text())
-      .then((text) => {
+    loadDefaultProject()
+      .then((defaultProject) => {
         if (cancelled) return
-        const defaultProject = parseProjectFileText(text)
         setProject(defaultProject)
         setProjectSnapshot(cloneProject(defaultProject))
         setProjectOrigin('default')
@@ -80,7 +88,7 @@ export function useLetterlinkProject(
     return () => {
       cancelled = true
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [project])
 
   const glyphMap = useMemo<GlyphMap | null>(() => {
     if (!project) {
