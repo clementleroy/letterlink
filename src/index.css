@@ -1,0 +1,99 @@
+:root {
+  font-family:
+    'IBM Plex Sans', 'Segoe UI', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #5d5348;
+  background:
+    radial-gradient(circle at top, rgba(214, 188, 156, 0.25), transparent 38%),
+    linear-gradient(180deg, #f5efe8, #efe5d7 68%, #e8dccb);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --panel: rgba(252, 248, 242, 0.92);
+  --surface: rgba(255, 255, 255, 0.82);
+  --border: rgba(123, 89, 60, 0.18);
+  --heading: #251b14;
+  --muted: #746759;
+  --accent: #ba6c26;
+  --accent-rgb: 186, 108, 38;
+  --transition-base: 160ms ease;
+  --pill-radius: 999px;
+  --shadow:
+    0 20px 50px rgba(78, 55, 26, 0.12),
+    0 4px 18px rgba(78, 55, 26, 0.06);
+  --success-bg: rgba(186, 108, 38, 0.09);
+  --success-border: rgba(186, 108, 38, 0.26);
+  --error-bg: rgba(181, 57, 71, 0.09);
+  --error-border: rgba(181, 57, 71, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--heading);
+  line-height: 1.08;
+}
+
+h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(2.4rem, 3vw, 4.8rem);
+  letter-spacing: -0.05em;
+}
+
+h2 {
+  font-size: 1.15rem;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  h1 {
+    font-size: clamp(1.85rem, 8.2vw, 2.35rem);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+}
