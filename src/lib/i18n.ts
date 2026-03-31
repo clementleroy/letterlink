@@ -112,6 +112,7 @@ export type AppStrings = {
     saveProjectFile: string
     exportCurrentBoard: string
     exportAllBoards: string
+    exportAllNames: string
     boardTabLabel: (index: number) => string
     boardAriaLabel: (index: number) => string
     emptyTitle: string
@@ -146,6 +147,7 @@ export type AppFeedback =
   | { key: 'config.boardDownloaded'; boardIndex: number }
   | { key: 'config.preparingSvgExport' }
   | { key: 'config.boardsExported'; count: number }
+  | { key: 'config.namesExported'; count: number }
   | { key: 'config.exportFailed' }
 
 type StructuredAppFeedback = Exclude<AppFeedback, { key: 'raw' }>
@@ -271,6 +273,7 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       saveProjectFile: 'Save project file',
       exportCurrentBoard: 'Export current board',
       exportAllBoards: 'Export all boards',
+      exportAllNames: 'Export names individually',
       boardTabLabel: (index) => `Board ${index}`,
       boardAriaLabel: (index) => `Board ${index}`,
       emptyTitle: 'No boards to preview yet',
@@ -397,6 +400,7 @@ const STRINGS: Record<AppLanguage, AppStrings> = {
       saveProjectFile: 'Enregistrer le projet',
       exportCurrentBoard: 'Exporter la planche actuelle',
       exportAllBoards: 'Exporter toutes les planches',
+      exportAllNames: 'Exporter les prénoms individuellement',
       boardTabLabel: (index) => `Planche ${index}`,
       boardAriaLabel: (index) => `Planche ${index}`,
       emptyTitle: 'Aucune planche à prévisualiser',
@@ -511,6 +515,10 @@ const FEEDBACK_RENDERERS: {
   'config.boardsExported': {
     en: (f) => `${f.count} board${f.count === 1 ? '' : 's'} exported successfully.`,
     fr: (f) => `${f.count} planche${f.count > 1 ? 's' : ''} exportée${f.count > 1 ? 's' : ''} avec succès.`,
+  },
+  'config.namesExported': {
+    en: (f) => `${f.count} name${f.count === 1 ? '' : 's'} exported as individual SVG files.`,
+    fr: (f) => `${f.count} prénom${f.count > 1 ? 's' : ''} exporté${f.count > 1 ? 's' : ''} en fichiers SVG individuels.`,
   },
   'config.exportFailed': {
     en: () => 'The export could not be completed.',

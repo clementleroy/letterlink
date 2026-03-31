@@ -1,6 +1,6 @@
 import { AppFeedbackError } from './i18n'
-import { buildSvgDocument } from './svg'
-import type { BoardPage, LetterlinkProject, ProjectFileEnvelope } from '../types'
+import { buildNameSvgDocument, buildSvgDocument } from './svg'
+import type { BoardPage, LetterlinkProject, ProjectFileEnvelope, RenderedWord } from '../types'
 
 function downloadBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob)
@@ -29,6 +29,27 @@ export async function triggerZipDownload(pages: BoardPage[]) {
 
   const blob = await zip.generateAsync({ type: 'blob' })
   downloadBlob(blob, 'planches-svg.zip')
+}
+
+export async function triggerNamesZipDownload(words: RenderedWord[], marginMm = 0) {
+  const { default: JSZip } = await import('jszip')
+  const zip = new JSZip()
+
+  words.forEach((word, i) => {
+    const slug =
+      word.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/gi, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '') || String(i + 1)
+    zip.file(
+      `${String(i + 1).padStart(3, '0')}-${slug}.svg`,
+      buildNameSvgDocument(word, marginMm),
+    )
+  })
+
+  const blob = await zip.generateAsync({ type: 'blob' })
+  downloadBlob(blob, 'prenoms-svg.zip')
 }
 
 export function triggerProjectDownload(project: LetterlinkProject) {

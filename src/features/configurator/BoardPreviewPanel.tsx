@@ -17,6 +17,7 @@ type BoardPreviewPanelProps = {
   strings: AppStrings
   onCurrentPageChange: (pageIndex: number) => void
   onDownloadBoard: () => void
+  onDownloadNames: () => void
   onDownloadProject: () => void
   onDownloadAll: () => void
 }
@@ -31,6 +32,7 @@ export function BoardPreviewPanel({
   strings,
   onCurrentPageChange,
   onDownloadBoard,
+  onDownloadNames,
   onDownloadProject,
   onDownloadAll,
 }: BoardPreviewPanelProps) {
@@ -77,11 +79,14 @@ export function BoardPreviewPanel({
       <PreviewExportBar
         canExportAll={pages.length > 0}
         canExportCurrent={Boolean(currentBoard)}
+        canExportNames={pages.length > 0}
         exportAllLabel={strings.preview.exportAllBoards}
         exportCurrentLabel={strings.preview.exportCurrentBoard}
+        exportNamesLabel={strings.preview.exportAllNames}
         saveProjectLabel={strings.preview.saveProjectFile}
         onDownloadAll={onDownloadAll}
         onDownloadBoard={onDownloadBoard}
+        onDownloadNames={onDownloadNames}
         onDownloadProject={onDownloadProject}
       />
 
