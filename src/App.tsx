@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react'
 import { AppHero } from './components/AppHero'
 import { WorkspaceSwitcher } from './components/WorkspaceSwitcher'
 import { AppShell } from './components/app-shell/AppShell'
-import { triggerProjectDownload, triggerSvgDownload, triggerZipDownload } from './lib/export'
+import { triggerNamesZipDownload, triggerProjectDownload, triggerSvgDownload, triggerZipDownload } from './lib/export'
 import { createGlyphMap } from './lib/glyphs'
 import { getAppStrings, resolveBrowserLanguage, type AppLanguage } from './lib/i18n'
 import { loadStoredLanguage, saveStoredLanguage } from './lib/project-store'
@@ -112,6 +112,27 @@ function App() {
       key: 'config.boardDownloaded',
       boardIndex: configuratorState.currentBoard.index + 1,
     })
+  }
+
+  const handleDownloadNames = async () => {
+    const words = configuratorState.pages.flatMap((p) => p.items)
+
+    if (words.length === 0) {
+      return
+    }
+
+    configuratorState.setStatusMessage({ key: 'config.preparingSvgExport' })
+
+    try {
+      await triggerNamesZipDownload(words, configuratorState.boardSettings.marginMm)
+      configuratorState.setStatusMessage({ key: 'config.namesExported', count: words.length })
+    } catch (error) {
+      configuratorState.setStatusMessage(
+        error instanceof Error && error.message
+          ? { key: 'raw', text: error.message }
+          : { key: 'config.exportFailed' },
+      )
+    }
   }
 
   const handleDownloadAll = async () => {
@@ -234,6 +255,7 @@ function App() {
           onCurrentPageChange={configuratorState.setCurrentPage}
           onDownloadAll={handleDownloadAll}
           onDownloadBoard={handleDownloadBoard}
+          onDownloadNames={handleDownloadNames}
           onDownloadProject={handleDownloadProject}
           onSetRawText={configuratorState.setRawText}
           onSetSelectedColumn={configuratorState.setSelectedColumn}

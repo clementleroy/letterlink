@@ -28,6 +28,7 @@ type ConfiguratorWorkspaceProps = {
   onCsvUpload: (event: ChangeEvent<HTMLInputElement>) => void
   onCurrentPageChange: (pageIndex: number) => void
   onDownloadBoard: () => void
+  onDownloadNames: () => void
   onDownloadProject: () => void
   onDownloadAll: () => void
   onSetRawText: (value: string) => void
@@ -72,6 +73,7 @@ export function ConfiguratorWorkspace(props: ConfiguratorWorkspaceProps) {
           strings={props.strings}
           onCurrentPageChange={props.onCurrentPageChange}
           onDownloadBoard={props.onDownloadBoard}
+          onDownloadNames={props.onDownloadNames}
           onDownloadProject={props.onDownloadProject}
           onDownloadAll={props.onDownloadAll}
         />

@@ -1,5 +1,5 @@
 import svgpath from 'svgpath'
-import type { BoardPage } from '../types'
+import type { BoardPage, RenderedWord } from '../types'
 
 function buildPageContent(page: BoardPage) {
   return page.items
@@ -8,6 +8,16 @@ function buildPageContent(page: BoardPage) {
         `<path d="${svgpath(item.pathData).translate(item.xMm, item.yMm).round(3).toString()}" />`,
     )
     .join('\n')
+}
+
+export function buildNameSvgDocument(word: RenderedWord, marginMm = 0): string {
+  const page: BoardPage = {
+    index: 0,
+    widthMm: word.widthMm + 2 * marginMm,
+    heightMm: word.heightMm + 2 * marginMm,
+    items: [{ ...word, pageIndex: 0, xMm: marginMm, yMm: marginMm }],
+  }
+  return buildSvgDocument(page)
 }
 
 export function buildSvgDocument(page: BoardPage) {
